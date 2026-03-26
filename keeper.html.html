@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Keeper Security 導入・移行手順書</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Hiragino Sans','Yu Gothic',Arial,sans-serif; background:#f0f4f8; color:#1a1a2e; }
+
+.cover {
+  background: linear-gradient(135deg,#0d1b4b 0%,#1a3a6b 50%,#0a7a7a 100%);
+  min-height:480px; display:flex; align-items:center; justify-content:space-between;
+  padding:48px 64px; gap:40px; margin-bottom:32px; position:relative; overflow:hidden;
+}
+.cover::before { content:''; position:absolute; inset:0;
+  background: radial-gradient(circle at 30% 50%, rgba(0,200,200,0.15) 0%, transparent 60%),
+              radial-gradient(circle at 70% 30%, rgba(100,150,255,0.1) 0%, transparent 50%); }
+.cover-left { flex:1; position:relative; z-index:1; }
+.cover-icon { font-size:100px; line-height:1; filter:drop-shadow(0 0 30px rgba(0,220,220,0.5)); }
+.cover-right { flex:1.2; position:relative; z-index:1; color:#fff; }
+.cover-tag { background:rgba(255,200,0,0.9); color:#1a1a2e; font-size:13px; font-weight:700; padding:4px 14px; border-radius:4px; display:inline-block; margin-bottom:16px; }
+.cover-right h1 { font-size:36px; font-weight:900; line-height:1.3; margin-bottom:12px; text-shadow:0 2px 8px rgba(0,0,0,0.3); }
+.cover-right .cover-sub { font-size:12px; opacity:0.8; margin-bottom:16px; }
+.cover-right .cover-desc { font-size:13px; line-height:1.8; background:rgba(255,255,255,0.1); border-radius:8px; padding:14px; border-left:3px solid #00d4d4; margin-bottom:16px; }
+.cover-right .cover-desc strong { color:#ffd700; }
+.time-bar { background:rgba(255,255,255,0.1); border-radius:10px; padding:12px 16px; border:1px solid rgba(255,255,255,0.2); }
+.time-bar .tb-title { font-size:12px; font-weight:700; color:#ffd700; margin-bottom:8px; }
+.time-steps { display:flex; gap:0; }
+.ts { flex:1; text-align:center; padding:6px 4px; border-right:1px solid rgba(255,255,255,0.2); }
+.ts:last-child { border-right:none; }
+.ts .ts-step { font-size:9px; opacity:0.7; }
+.ts .ts-min { font-size:14px; font-weight:900; color:#ffd700; }
+.ts .ts-label { font-size:9px; opacity:0.8; }
+.time-total { font-size:11px; margin-top:8px; text-align:right; opacity:0.85; }
+
+.slide { background:#fff; margin:0 auto 32px; max-width:1000px; border-radius:16px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,0.10); }
+.slide-head { background:linear-gradient(90deg,#0d1b4b,#1a6090); color:#fff; padding:18px 36px; display:flex; align-items:center; gap:14px; }
+.slide-head .snum { background:rgba(255,255,255,0.2); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:900; flex-shrink:0; }
+.slide-head h2 { font-size:22px; font-weight:800; }
+.slide-head .tag2 { margin-left:auto; background:rgba(255,200,0,0.9); color:#1a1a2e; font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; white-space:nowrap; }
+.slide-body { padding:32px 36px; }
+
+.warn-box { background:#fff3cd; border:2px solid #ffc107; border-radius:8px; padding:12px 16px; font-size:13px; color:#7b4800; }
+.warn-box strong { color:#c62828; }
+.important-box { background:#fff3e0; border:2px solid #ff9800; border-radius:8px; padding:12px 16px; font-size:13px; color:#7b3a00; }
+.important-box .i-title { font-weight:800; color:#e65100; margin-bottom:6px; font-size:14px; }
+.success-box { background:#e8f5e9; border:2px solid #4caf50; border-radius:8px; padding:12px 16px; font-size:13px; color:#1b5e20; margin-top:8px; }
+.info-box { background:#e3f2fd; border:2px solid #1565c0; border-radius:8px; padding:12px 16px; font-size:13px; color:#0d47a1; margin-top:8px; }
+
+.step-item { display:flex; gap:12px; align-items:flex-start; margin-bottom:10px; }
+.si-num { background:linear-gradient(135deg,#1a6090,#0d1b4b); color:#fff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:900; flex-shrink:0; margin-top:1px; }
+.si-text { font-size:13px; line-height:1.7; color:#333; }
+.si-text strong { color:#0d1b4b; background:#e8f0ff; padding:1px 5px; border-radius:3px; }
+
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.col-step { display:flex; gap:10px; align-items:flex-start; margin-bottom:10px; }
+.cs-num { background:#0d1b4b; color:#fff; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:900; flex-shrink:0; }
+.cs-text { font-size:12px; line-height:1.6; color:#333; }
+.cs-text strong { background:rgba(255,200,0,0.5); padding:0 4px; border-radius:2px; }
+
+.flow-arrow-row { display:flex; align-items:flex-start; gap:6px; flex-wrap:nowrap; overflow-x:auto; }
+.fa-box { flex:0 0 auto; }
+.fa-arr { align-self:center; font-size:18px; color:#1565c0; font-weight:700; flex-shrink:0; padding:0 2px; }
+.step-label { font-size:10px; font-weight:700; color:#e65100; margin-bottom:4px; text-align:center; }
+
+.chrome-mock { background:#f1f3f4; border-radius:10px; overflow:hidden; border:1px solid #ccc; font-size:11px; }
+.chrome-toolbar { background:#fff; padding:5px 8px; display:flex; align-items:center; gap:5px; border-bottom:1px solid #ddd; }
+.chrome-addr { flex:1; background:#f1f3f4; border-radius:20px; padding:3px 10px; font-size:10px; color:#555; }
+.c-btn { font-size:14px; color:#555; }
+.c-more { font-size:14px; font-weight:700; background:rgba(255,200,0,0.3); border:1px solid #ffc107; border-radius:4px; padding:0 5px; }
+
+.kp { background:#fff; border-radius:10px; overflow:hidden; border:2px solid #ffc107; box-shadow:0 4px 12px rgba(0,0,0,0.15); font-size:11px; }
+.kp-head { background:#1a1a2e; color:#fff; padding:7px 10px; display:flex; align-items:center; justify-content:space-between; }
+.kp-logo { display:flex; align-items:center; gap:5px; font-weight:700; font-size:12px; }
+.kp-logo-icon { width:20px; height:20px; background:#ffc107; border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:11px; }
+.kp-icons { display:flex; gap:3px; }
+.kp-icon { width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; }
+.kp-body { padding:7px 9px; }
+.kp-record { display:flex; align-items:center; justify-content:space-between; padding:5px 6px; background:#f8f9ff; border-radius:5px; border:1px solid #e0e4f0; margin-bottom:3px; }
+.kp-record-info { display:flex; align-items:center; gap:6px; }
+.kp-record-icon { width:22px; height:22px; border-radius:4px; background:#e8f0ff; display:flex; align-items:center; justify-content:center; font-size:12px; }
+.kp-fill-btn { background:#1565c0; color:#fff; border-radius:4px; padding:3px 7px; font-size:10px; font-weight:700; }
+
+.dd { background:#fff; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.15); border:1px solid #ddd; overflow:hidden; font-size:11px; }
+.dd-item { padding:7px 12px; display:flex; align-items:center; gap:7px; }
+.dd-item.hl { background:#e8f0ff; color:#0d47a1; font-weight:700; border-left:3px solid #1565c0; }
+.dd-item.red { color:#e53935; }
+.dd-div { height:1px; background:#eee; }
+
+.vault-screen { background:#fff; border:1px solid #ddd; border-radius:8px; overflow:hidden; font-size:11px; }
+.vs-head { background:#0d1b4b; color:#fff; padding:7px 10px; display:flex; align-items:center; justify-content:space-between; }
+.vs-logo { font-size:12px; font-weight:700; }
+.vs-email { font-size:10px; background:rgba(255,200,0,0.3); border:1px solid #ffc107; padding:2px 8px; border-radius:12px; }
+.vs-body { display:flex; }
+.vs-side { width:80px; background:#f8f9fa; border-right:1px solid #eee; padding:5px; }
+.vs-side-item { padding:4px 6px; border-radius:4px; font-size:10px; color:#555; margin-bottom:2px; }
+.vs-side-item.active { background:#e8f0ff; color:#0d47a1; font-weight:700; }
+.vs-main { flex:1; padding:8px; }
+.vs-empty { text-align:center; padding:16px 0; color:#bbb; font-size:12px; }
+
+.setting-modal { background:#fff; border-radius:10px; border:1px solid #ddd; overflow:hidden; font-size:11px; box-shadow:0 4px 16px rgba(0,0,0,0.12); }
+.sm-head { background:#f8f8f8; padding:8px 12px; font-weight:700; font-size:12px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; }
+.sm-body { display:flex; }
+.sm-side { width:110px; border-right:1px solid #eee; padding:6px; }
+.sm-side-item { display:flex; align-items:center; gap:5px; padding:5px 6px; border-radius:5px; font-size:10px; color:#555; margin-bottom:2px; }
+.sm-side-item.active { background:#ff6f00; color:#fff; font-weight:700; }
+.sm-side-icon { width:18px; height:18px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:10px; flex-shrink:0; }
+.sm-main { flex:1; padding:10px; }
+
+.phone { background:#1a1a2e; border-radius:18px; padding:10px 7px; border:3px solid #444; max-width:130px; margin:0 auto; }
+.phone-screen { background:#fff; border-radius:10px; overflow:hidden; }
+.phone-notif { background:#1565c0; color:#fff; padding:8px 10px; }
+.pn-app { font-size:9px; opacity:0.8; margin-bottom:2px; }
+.pn-title { font-size:11px; font-weight:700; margin-bottom:2px; }
+.pn-body { font-size:9px; opacity:0.9; }
+.pn-btns { display:flex; gap:4px; margin-top:5px; }
+.pn-btn { flex:1; padding:3px; border-radius:3px; font-size:9px; font-weight:700; text-align:center; }
+.pn-btn.ok { background:#4caf50; color:#fff; }
+.pn-btn.no { background:rgba(255,255,255,0.2); color:#fff; }
+
+.login-form { background:#fff; border-radius:8px; border:1px solid #ddd; padding:12px; font-size:11px; }
+.lf-title { font-size:12px; font-weight:700; text-align:center; margin-bottom:10px; color:#333; }
+.lf-field { position:relative; margin-bottom:8px; }
+.lf-input { width:100%; border:1px solid #ddd; border-radius:4px; padding:6px 28px 6px 8px; font-size:11px; color:#555; background:#f9f9f9; }
+.lf-input.filled { background:#e8f5e9; border-color:#4caf50; color:#1b5e20; font-weight:700; }
+.kp-field-icon { position:absolute; right:5px; top:50%; transform:translateY(-50%); width:18px; height:18px; border-radius:50%; background:#ffc107; display:flex; align-items:center; justify-content:center; font-size:10px; }
+.lf-btn { width:100%; background:#1565c0; color:#fff; border-radius:4px; padding:6px; font-size:11px; font-weight:700; text-align:center; margin-top:4px; border:2px solid #ffd700; }
+
+.save-notif-area { position:relative; background:#f8f9ff; border-radius:8px; padding:10px; border:1px solid #ddd; min-height:80px; }
+.save-notif-badge { position:absolute; top:6px; right:6px; background:#1565c0; color:#fff; border-radius:8px; padding:6px 10px; font-size:10px; }
+.snb-title { font-weight:700; margin-bottom:3px; }
+.snb-btns { display:flex; gap:4px; margin-top:4px; }
+.snb-btn { padding:2px 8px; border-radius:3px; font-size:10px; font-weight:700; }
+.snb-btn.save { background:#4caf50; color:#fff; }
+.snb-btn.no { background:rgba(255,255,255,0.2); color:#fff; border:1px solid rgba(255,255,255,0.4); }
+.fake-page { opacity:0.35; font-size:11px; padding-top:40px; text-align:center; color:#888; }
+
+@media print {
+  body { background:#fff; }
+  .cover, .slide { box-shadow:none; margin:0; border-radius:0; }
+  .cover { min-height:unset !important; padding:32px 48px !important; break-inside:avoid; page-break-inside:avoid; }
+  .slide { break-before:page; page-break-before:always; break-inside:avoid; page-break-inside:avoid; margin-bottom:0 !important; }
+  .slide-head, .step-item, .flow-arrow-row, .fa-box, .two-col, .important-box,
+  .warn-box, .info-box, .success-box, .kp, .vault-screen, .setting-modal,
+  .phone, .login-form, .save-notif-area, .slide-body > * { break-inside:avoid; page-break-inside:avoid; }
+}
+</style>
+</head>
+<body>
+
+<!-- 表紙 -->
+<div class="cover">
+  <div class="cover-left"><div class="cover-icon">🔐</div></div>
+  <div class="cover-right">
+    <div class="cover-tag">【全社員対象】</div>
+    <h1>Keeper Security<br>導入・移行手順書</h1>
+    <div class="cover-sub">発行：コーポレートIT課　｜　対象：全従業員</div>
+    <div class="cover-desc">会社指定の<strong>パスワード管理ツール「Keeper」</strong>の導入手順書です。<br>本日からパスワード管理はKeeperに一本化されます。</div>
+    <div class="time-bar">
+      <div class="tb-title">⏱ 作業の目安時間（合計：約25〜35分）</div>
+      <div class="time-steps">
+        <div class="ts"><div class="ts-step">Step1</div><div class="ts-min">5分</div><div class="ts-label">ログイン</div></div>
+        <div class="ts"><div class="ts-step">1-B</div><div class="ts-min">1分</div><div class="ts-label">ボルトを開く</div></div>
+        <div class="ts"><div class="ts-step">Step2</div><div class="ts-min">10分</div><div class="ts-label">インポート</div></div>
+        <div class="ts"><div class="ts-step">Step3</div><div class="ts-min">5分</div><div class="ts-label">旧データ削除</div></div>
+        <div class="ts"><div class="ts-step">Step4</div><div class="ts-min">3分</div><div class="ts-label">Chrome設定</div></div>
+        <div class="ts"><div class="ts-step">Step5〜6</div><div class="ts-min">1分</div><div class="ts-label">使い方確認</div></div>
+      </div>
+      <div class="time-total">✅ 作業は一度だけです。終われば毎日のログインが自動になります！</div>
+    </div>
+  </div>
+</div>
+
+<!-- はじめに -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">📋</div><h2>はじめに：Keeperの全体像と新しいパスワード管理のルール</h2></div>
+  <div class="slide-body">
+    <p style="font-size:13px;font-weight:700;color:#0d1b4b;margin-bottom:10px;">📌 Keeperを使うと、こんな流れでログインできるようになります</p>
+    <div style="display:flex;align-items:center;gap:0;margin-bottom:24px;">
+      <div style="flex:1;background:linear-gradient(135deg,#fff3e0,#ffe0b2);border:2px solid #ff9800;border-radius:12px;padding:14px;text-align:center;">
+        <div style="font-size:28px;margin-bottom:6px;">🔑</div>
+        <div style="font-size:13px;font-weight:800;color:#e65100;margin-bottom:4px;">① Googleで認証</div>
+        <div style="font-size:11px;color:#555;">パスキー（指紋・顔・PIN）<br>またはGoogleパスワード</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;padding:0 8px;flex-shrink:0;">
+        <div style="font-size:24px;color:#1565c0;font-weight:700;">→</div>
+        <div style="font-size:9px;color:#888;">自動で開く</div>
+      </div>
+      <div style="flex:1;background:linear-gradient(135deg,#e8f0ff,#d0e0ff);border:2px solid #1565c0;border-radius:12px;padding:14px;text-align:center;">
+        <div style="font-size:28px;margin-bottom:6px;">🛡️</div>
+        <div style="font-size:13px;font-weight:800;color:#0d47a1;margin-bottom:4px;">② Keeperボルトが開く</div>
+        <div style="font-size:11px;color:#555;">全パスワードを暗号化して<br>保管する「金庫」</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;padding:0 8px;flex-shrink:0;">
+        <div style="font-size:24px;color:#1565c0;font-weight:700;">→</div>
+        <div style="font-size:9px;color:#888;">自動で入力</div>
+      </div>
+      <div style="flex:1;background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border:2px solid #2e7d32;border-radius:12px;padding:14px;text-align:center;">
+        <div style="font-size:28px;margin-bottom:6px;">⚡</div>
+        <div style="font-size:13px;font-weight:800;color:#1b5e20;margin-bottom:4px;">③ 業務システムへ自動ログイン</div>
+        <div style="font-size:11px;color:#555;">IDとパスワードが<br>自動で入力される</div>
+      </div>
+    </div>
+    <p style="font-size:13px;font-weight:700;color:#0d1b4b;margin-bottom:10px;">📌 Keeperには2つの画面があります</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+      <div style="background:linear-gradient(135deg,#e8f0ff,#d0e0ff);border:2px solid #1565c0;border-radius:12px;padding:18px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <div style="width:32px;height:32px;background:#ffc107;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;">🔐</div>
+          <div style="font-size:14px;font-weight:800;color:#0d47a1;">Keeperアイコンのポップアップ</div>
+        </div>
+        <div style="font-size:12px;color:#333;line-height:1.7;"><strong>毎日の自動入力・ログイン</strong>はここから行います。</div>
+        <div style="margin-top:10px;background:#fff;border-radius:6px;padding:6px 10px;font-size:11px;color:#0d47a1;border:1px solid #90b0f0;">🖱️ 使う場面：業務システムにログインするとき</div>
+      </div>
+      <div style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border:2px solid #2e7d32;border-radius:12px;padding:18px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <div style="width:32px;height:32px;background:#2e7d32;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;">🗄️</div>
+          <div style="font-size:14px;font-weight:800;color:#1b5e20;">ウェブボルト（保管庫）</div>
+        </div>
+        <div style="font-size:12px;color:#333;line-height:1.7;"><strong>インポート・設定変更・パスワード一覧確認</strong>はここから行います。</div>
+        <div style="margin-top:10px;background:#fff;border-radius:6px;padding:6px 10px;font-size:11px;color:#1b5e20;border:1px solid #90c090;">🖱️ 使う場面：今回の初期設定・インポート作業</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div style="display:flex;gap:14px;align-items:flex-start;">
+        <div style="background:#0d1b4b;color:#fff;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;flex-shrink:0;margin-top:2px;">1</div>
+        <div><div style="font-size:14px;font-weight:800;color:#0d1b4b;margin-bottom:3px;">KeeperへのログインはGoogleアカウントで行います（SSO連携）</div><div style="font-size:13px;color:#444;line-height:1.6;"><strong>パスキー（指紋・顔認証・PIN）</strong>またはGoogleパスワードでサインインすると自動的にKeeperが開きます。</div></div>
+      </div>
+      <div style="display:flex;gap:14px;align-items:flex-start;">
+        <div style="background:#0d1b4b;color:#fff;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;flex-shrink:0;margin-top:2px;">2</div>
+        <div><div style="font-size:14px;font-weight:800;color:#0d1b4b;margin-bottom:3px;">業務システムごとのパスワード暗記は不要になります</div><div style="font-size:13px;color:#444;line-height:1.6;">一度保存すれば、次回から各サービスのログイン画面でIDとパスワードが自動入力されます。</div></div>
+      </div>
+      <div class="warn-box">⚠️ <strong>【厳禁】</strong>PCモニターへの付箋、スマホのメモ帳、Excel等へのデジタル保存は情報漏洩防止のため厳禁です。</div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 1 -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">1</div><h2>初期設定とデバイスの承認（SSOログイン）</h2><div class="tag2">約5分</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;font-weight:700;color:#0d1b4b;margin-bottom:8px;">📌 ChromeのツールバーにあるKeeperアイコンを確認してください</p>
+    <div class="chrome-mock" style="margin-bottom:20px;">
+      <div class="chrome-toolbar">
+        <span class="c-btn">←</span><span class="c-btn">→</span><span class="c-btn">↻</span>
+        <div class="chrome-addr">https://www.google.com</div>
+        <div style="width:26px;height:26px;border-radius:50%;background:#ffc107;display:flex;align-items:center;justify-content:center;font-size:14px;position:relative;">🔐<div style="position:absolute;bottom:0;right:0;width:9px;height:9px;border-radius:50%;background:#4caf50;border:1px solid #fff;"></div></div>
+        <span class="c-more">⋮</span>
+      </div>
+      <div style="padding:5px 10px;background:#fff;"><div style="font-size:10px;color:#4caf50;font-weight:700;text-align:right;">↑ Keeperアイコン（黄色い丸）　緑の丸＝ログイン済み　灰色の丸＝未ログイン</div></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="step-item"><div class="si-num">1</div><div class="si-text">Chromeの右上の<strong>Keeperアイコン（黄色い丸）</strong>をクリックします。</div></div>
+      <div class="step-item"><div class="si-num">2</div><div class="si-text"><strong>「法人SSOログイン」</strong>をクリックし、企業ドメイン<strong>adventure-inc.co.jp</strong>を入力して<strong>「接続」</strong>をクリックします。</div></div>
+      <div class="step-item"><div class="si-num">3</div><div class="si-text">Googleの認証画面で会社アカウントを選択して認証します。<br><span style="font-size:12px;color:#6a1b9a;">・パスキー設定済みの方 → 指紋・顔・PINで認証</span><br><span style="font-size:12px;color:#0d47a1;">・パスキー未設定の方 → Googleパスワードを入力</span></div></div>
+      <div class="important-box">
+        <div class="i-title">【重要】デバイスの承認画面が表示された場合（初回のみ）</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div style="background:#e8f5e9;border:2px solid #4caf50;border-radius:8px;padding:10px;"><div style="font-weight:800;color:#1b5e20;font-size:12px;margin-bottom:4px;">✅ A：Keeperプッシュ通知（推奨）</div><div style="font-size:11px;color:#444;">承認済みの別デバイスに通知が届きます。「承認」をタップして完了。</div></div>
+          <div style="background:#fff3e0;border:2px solid #ff9800;border-radius:8px;padding:10px;"><div style="font-weight:800;color:#e65100;font-size:12px;margin-bottom:4px;">🛡️ B：管理者承認</div><div style="font-size:11px;color:#444;">別デバイスがない場合。IT課が<strong>30分以内</strong>に対応。急ぎは #keeper-support へ。</div></div>
+        </div>
+      </div>
+      <div class="success-box">✅ Keeperアイコン右下に<strong>「緑色の丸」</strong>が点灯すれば、ログイン完了です！<br><span style="font-size:12px;margin-top:4px;display:block;">👉 <strong>次にやること：Step 1-B でウェブボルトを開いてインポートを行います</strong></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 1-B -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">1-B</div><h2>ウェブボルト（保管庫）の開き方</h2><div class="tag2">約1分</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;color:#444;margin-bottom:14px;">インポートや保存済みパスワードの確認は<strong>「ウェブボルト」</strong>から行います。</p>
+    <div class="flow-arrow-row" style="margin-bottom:20px;">
+      <div class="fa-box" style="width:170px;">
+        <div class="step-label">① Keeperアイコンをクリック</div>
+        <div class="kp">
+          <div class="kp-head"><div class="kp-logo"><div class="kp-logo-icon">🔐</div>KEEPER</div><div class="kp-icons"><div class="kp-icon" style="background:#ffc107;">+</div><div class="kp-icon" style="background:rgba(255,200,0,0.3);border:1px solid #ffc107;font-size:14px;font-weight:700;">⋮</div></div></div>
+          <div class="kp-body" style="font-size:10px;color:#888;">パスワード一覧...<br><span style="color:#e65100;font-weight:700;">→ 右上の ⋮ をクリック</span></div>
+        </div>
+      </div>
+      <div class="fa-arr">→</div>
+      <div class="fa-box" style="width:170px;">
+        <div class="step-label">② 「ウェブボルトで開く」をクリック</div>
+        <div class="dd">
+          <div class="dd-item">🎲 パスワード生成ツール</div>
+          <div class="dd-item">⚙️ 設定</div>
+          <div class="dd-div"></div>
+          <div class="dd-item hl">🔷 ウェブボルトで開く ←</div>
+          <div class="dd-item red">🚪 ログアウト</div>
+        </div>
+      </div>
+      <div class="fa-arr">→</div>
+      <div class="fa-box" style="flex:1;">
+        <div class="step-label">③ ウェブボルトが開く</div>
+        <div class="vault-screen">
+          <div class="vs-head"><div class="vs-logo">🔐 Keeper</div><div class="vs-email">j-iwaya@adventure-inc.co.jp ▾</div></div>
+          <div class="vs-body">
+            <div class="vs-side"><div class="vs-side-item active">🏠 すべて</div><div class="vs-side-item">⭐ お気に入り</div></div>
+            <div class="vs-main"><div class="vs-empty"><div style="font-size:28px;margin-bottom:6px;">📭</div><div style="font-weight:700;color:#aaa;">まだパスワードがありません</div><div style="font-size:10px;color:#bbb;margin-top:4px;">次のStep 2でインポートします</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="background:#f0fff4;border-radius:10px;padding:14px;border:2px solid #90c090;">
+      <p style="font-size:13px;font-weight:700;color:#1b5e20;margin-bottom:6px;">📌 URLから直接開く場合</p>
+      <div style="font-family:monospace;font-size:13px;font-weight:700;color:#1b5e20;background:#fff;border:1px solid #90c090;border-radius:6px;padding:6px 12px;display:inline-block;">keepersecurity.com/vault</div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 2 -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">2</div><h2>パスワードの移行（Keeperへのインポート）</h2><div class="tag2">約10分</div></div>
+  <div class="slide-body">
+    <div class="info-box" style="margin-bottom:16px;">💡 インポートはウェブボルトから行います。まず<strong>Step 1-BでウェブボルトをS開いて</strong>から以下を進めてください。</div>
+    <p style="font-size:13px;font-weight:700;color:#0d1b4b;margin-bottom:8px;">📌 インポート画面の開き方</p>
+    <div class="flow-arrow-row" style="margin-bottom:16px;">
+      <div class="fa-box" style="width:148px;">
+        <div class="step-label">① ボルト右上のメールをクリック</div>
+        <div class="vault-screen"><div class="vs-head" style="flex-direction:column;align-items:flex-end;gap:3px;"><div style="width:100%;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:11px;font-weight:700;">🔐 Keeper</span><div class="vs-email" style="font-size:9px;">j-iwaya@... ▾ ←</div></div></div><div style="padding:5px 8px;font-size:10px;color:#888;">ボルト画面...</div></div>
+      </div>
+      <div class="fa-arr">→</div>
+      <div class="fa-box" style="width:140px;">
+        <div class="step-label">② 「設定」をクリック</div>
+        <div class="dd"><div class="dd-item">👤 アカウント</div><div class="dd-item hl">⚙️ 設定 ←</div><div class="dd-item red">🚪 ログアウト</div></div>
+      </div>
+      <div class="fa-arr">→</div>
+      <div class="fa-box" style="width:148px;">
+        <div class="step-label">③ 左メニューの「インポート」</div>
+        <div class="setting-modal">
+          <div class="sm-head">設定</div>
+          <div class="sm-body">
+            <div class="sm-side">
+              <div class="sm-side-item"><div class="sm-side-icon" style="background:#555;">⚙️</div>全般</div>
+              <div class="sm-side-item active"><div class="sm-side-icon" style="background:#ff6f00;">📥</div>インポート ←</div>
+            </div>
+            <div class="sm-main" style="font-size:10px;color:#888;">設定画面...</div>
+          </div>
+        </div>
+      </div>
+      <div class="fa-arr">→</div>
+      <div class="fa-box" style="flex:1;">
+        <div class="step-label">④「ブラウザから」→「インポート」→「インストール」</div>
+        <div style="background:#fff;border-radius:8px;border:1px solid #ddd;padding:10px;font-size:11px;">
+          <div style="font-weight:700;margin-bottom:7px;">インポート方法の選択</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #eee;margin-bottom:5px;"><div><div style="font-size:10px;font-weight:700;">ブラウザから</div><div style="font-size:9px;color:#888;">Chrome、Firefox...</div></div><div style="background:#1565c0;color:#fff;border-radius:3px;padding:2px 6px;font-size:9px;font-weight:700;">インポート ←</div></div>
+        </div>
+        <div style="font-size:10px;color:#1b5e20;font-weight:700;margin-top:4px;background:#e8f5e9;border-radius:4px;padding:4px 6px;">✅ 正規のツールです。安心してクリックしてください。</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="col-step"><div class="cs-num" style="background:#1565c0;">6</div><div class="cs-text" style="font-size:13px;">インストール完了後、ChromeのパスワードをKeeperが自動で読み込みます。</div></div>
+      <div class="col-step"><div class="cs-num" style="background:#1565c0;">7</div><div class="cs-text" style="font-size:13px;">パスワード一覧が表示されたら確認し、<strong>「Keeperに追加」</strong>をクリックして完了です。</div></div>
+      <div style="background:#fff3e0;border:1px solid #ff9800;border-radius:6px;padding:8px 12px;font-size:12px;color:#7b3a00;">⚠️ Macの場合はキーチェーンのアクセス許可画面が複数表示されます。Macのパスワードを入力して許可してください。</div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 3 -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">3</div><h2>Googleパスワードマネージャーのデータ削除</h2><div class="tag2">約5分・必須</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;margin-bottom:14px;background:#ffebee;border-radius:6px;padding:8px 14px;color:#c62828;font-weight:700;">⚠️ KeeperとChromeが同時に自動入力しようとして競合するため、この作業は必ず実施してください。</p>
+    <div class="flow-arrow-row" style="margin-bottom:16px;">
+      <div class="fa-box" style="width:140px;"><div class="step-label">① Chrome ⋮ をクリック</div><div class="chrome-mock"><div class="chrome-toolbar" style="justify-content:flex-end;"><div class="c-more">⋮ ←</div></div><div style="padding:5px 10px;background:#fff;font-size:10px;color:#888;">Chromeブラウザ</div></div></div>
+      <div class="fa-arr">→</div>
+      <div class="fa-box" style="width:155px;"><div class="step-label">②「パスワードと自動入力」へ</div><div class="dd"><div class="dd-item">設定</div><div class="dd-item hl">パスワードと自動入力 ▶ ←</div></div></div>
+      <div class="fa-arr">→</div>
+      <div class="fa-box" style="width:155px;"><div class="step-label">③「Googleパスワードマネージャー」</div><div class="dd"><div class="dd-item hl">🔑 Googleパスワードマネージャー ←</div><div class="dd-item">💳 お支払い方法</div></div></div>
+      <div class="fa-arr">→</div>
+      <div class="fa-box" style="width:155px;"><div class="step-label">④ 設定⚙️→「データを削除」</div><div style="background:#fff;border-radius:8px;border:1px solid #ddd;overflow:hidden;font-size:10px;"><div style="background:#1565c0;color:#fff;padding:5px 8px;font-weight:700;">⚙️ 設定</div><div style="padding:5px 8px;font-size:9px;color:#c62828;">データをすべて削除</div><div style="background:#c62828;color:#fff;margin:3px 8px 6px;border-radius:3px;padding:3px;text-align:center;font-size:9px;font-weight:700;">データを削除 ←</div></div></div>
+    </div>
+    <div class="success-box">✅ Googleパスワードマネージャーを開き、パスワードリストが<strong>空になっている</strong>ことを確認してください。</div>
+  </div>
+</div>
+
+<!-- Step 4 -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">4</div><h2>Chrome設定の変更（競合防止）</h2><div class="tag2">約3分</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;margin-bottom:14px;background:#fff3e0;border-radius:6px;padding:8px 14px;color:#7b3a00;font-weight:700;">【重要】Keeper導入後、Chromeが「パスワードを保存しますか？」と毎回聞いてくるのを防ぐための設定です。</p>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="step-item"><div class="si-num">1</div><div class="si-text">Chromeブラウザ右上の<strong>⋮（メニュー）→「設定」</strong>をクリックします。</div></div>
+      <div class="step-item"><div class="si-num">2</div><div class="si-text">左側のメニューから<strong>「自動入力とパスワード」→「Googleパスワードマネージャー」</strong>をクリックします。</div></div>
+      <div class="step-item"><div class="si-num">3</div><div class="si-text">画面左側の<strong>「設定」（歯車マーク）</strong>をクリックします。</div></div>
+      <div class="step-item"><div class="si-num">4</div><div class="si-text"><strong>「パスワードとパスキーを保存するか確認する」</strong>のスイッチを<strong style="color:#c62828;">オフ（灰色）</strong>にします。</div></div>
+      <div class="step-item"><div class="si-num">5</div><div class="si-text">設定完了後、<strong>Chromeを再起動</strong>してください。</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 5 -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">5</div><h2>毎日の利用方法（自動入力・手動入力）</h2></div>
+  <div class="slide-body">
+    <div class="info-box" style="margin-bottom:14px;">💡 <strong>使い分け：</strong>日常の自動入力 → <strong>Keeperアイコン（ポップアップ）</strong>　／　パスワード一覧・設定変更 → <strong>ウェブボルト</strong></div>
+    <div class="two-col">
+      <div style="background:linear-gradient(135deg,#e3f2fd,#bbdefb);border:2px solid #64b5f6;border-radius:12px;padding:20px;">
+        <h3 style="font-size:14px;font-weight:800;color:#0d47a1;margin-bottom:12px;">🤖 基本は「自動入力」</h3>
+        <p style="font-size:12px;color:#333;margin-bottom:10px;">ログイン画面を開くだけでIDとパスワードが自動で入力されます。</p>
+        <div class="login-form">
+          <div class="lf-title">🔒 ログイン</div>
+          <div class="lf-field"><input class="lf-input filled" readonly value="user@adventure-inc.co.jp"></div>
+          <div class="lf-field"><input class="lf-input filled" type="password" readonly value="••••••••••"><div class="kp-field-icon">🔐</div></div>
+          <div style="font-size:10px;color:#1b5e20;margin-bottom:4px;">↑ Keeperが自動入力しました</div>
+          <div class="lf-btn">Login ← そのままクリック！</div>
+        </div>
+      </div>
+      <div style="background:linear-gradient(135deg,#f3e5f5,#e1bee7);border:2px solid #ba68c8;border-radius:12px;padding:20px;">
+        <h3 style="font-size:14px;font-weight:800;color:#4a148c;margin-bottom:8px;">👆 自動入力されない場合</h3>
+        <div class="step-item"><div class="si-num" style="background:#4a148c;">1</div><div class="si-text" style="font-size:12px;">ログイン画面を開きます。</div></div>
+        <div class="step-item"><div class="si-num" style="background:#4a148c;">2</div><div class="si-text" style="font-size:12px;">Chromeの<strong>Keeperアイコン</strong>をクリックします。</div></div>
+        <div class="step-item"><div class="si-num" style="background:#4a148c;">3</div><div class="si-text" style="font-size:12px;">一覧から<strong>「→入力」ボタン</strong>をクリックします。</div></div>
+        <div style="margin-top:8px;" class="kp">
+          <div class="kp-head"><div class="kp-logo"><div class="kp-logo-icon">🔐</div>KEEPER</div></div>
+          <div class="kp-body"><div class="kp-record"><div class="kp-record-info"><div class="kp-record-icon">🔑</div><div><div style="font-size:11px;font-weight:700;color:#0d47a1;">Google Workspace</div><div style="font-size:9px;color:#888;">j-iwaya@adventure-inc.co.jp</div></div></div><div class="kp-fill-btn">→入力</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 6 -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">6</div><h2>毎日の利用方法（新規保存）</h2></div>
+  <div class="slide-body">
+    <p style="font-size:13px;color:#444;margin-bottom:14px;">まだKeeperに登録されていないサイトにログインすると、KeeperFillが自動的に検知して保存を提案します。</p>
+    <div style="display:flex;align-items:stretch;gap:10px;">
+      <div style="flex:1;background:#f0f4ff;border-radius:10px;padding:14px;text-align:center;border:2px solid #90b0f0;"><div style="font-size:28px;margin-bottom:6px;">🖥️</div><p style="font-size:12px;color:#333;line-height:1.5;"><strong>①</strong> ログイン画面でIDとパスワードを手入力してログイン</p></div>
+      <div style="align-self:center;font-size:22px;color:#1a6090;font-weight:700;">→</div>
+      <div style="flex:1;background:#f0f4ff;border-radius:10px;padding:14px;border:2px solid #90b0f0;">
+        <div class="save-notif-area">
+          <div class="save-notif-badge"><div class="snb-title">🔐 KEEPER<br>新しいパスワードを保存しますか？</div><div class="snb-btns"><div class="snb-btn save">保存</div><div class="snb-btn no">いいえ</div></div></div>
+          <div class="fake-page">ログイン完了後の画面</div>
+        </div>
+        <p style="font-size:12px;color:#333;margin-top:6px;"><strong>②</strong> 画面右上にポップアップが表示される</p>
+      </div>
+      <div style="align-self:center;font-size:22px;color:#1a6090;font-weight:700;">→</div>
+      <div style="flex:1;background:#f0f4ff;border-radius:10px;padding:14px;text-align:center;border:2px solid #90b0f0;"><div style="font-size:28px;margin-bottom:6px;">✅</div><p style="font-size:12px;color:#333;"><strong>③「保存」</strong>をクリック。次回からは自動入力されます！</p></div>
+    </div>
+    <div class="info-box" style="margin-top:12px;">💡 ポップアップが表示されない場合は、Keeperアイコン →<strong>「レコードを追加（＋）」</strong>から手動保存できます。</div>
+  </div>
+</div>
+
+<!-- 困ったときは -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">7</div><h2>困ったときは</h2></div>
+  <div class="slide-body">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+      <div style="background:linear-gradient(135deg,#e8f0ff,#d0e0ff);border:2px solid #90b0f0;border-radius:12px;padding:20px;text-align:center;">
+        <div style="font-size:52px;margin-bottom:10px;">👩‍💻</div>
+        <h3 style="font-size:15px;font-weight:800;color:#0d1b4b;margin-bottom:8px;">コーポレートIT課へ問い合わせ</h3>
+        <p style="font-size:12px;color:#444;line-height:1.6;">Slackの <strong>#keeper-support</strong> チャンネルへ。<br>デバイス承認は<strong>30分以内</strong>を目標に対応します。</p>
+      </div>
+      <div style="background:linear-gradient(135deg,#fff8e1,#ffecb3);border:2px solid #ffc107;border-radius:12px;padding:20px;text-align:center;">
+        <div style="font-size:52px;margin-bottom:10px;">📖</div>
+        <h3 style="font-size:15px;font-weight:800;color:#0d1b4b;margin-bottom:8px;">Keeperエンドユーザーガイド（公式）</h3>
+        <div style="background:#0d1b4b;color:#fff;border-radius:8px;padding:10px 14px;font-size:12px;font-weight:700;margin-bottom:6px;text-align:left;">🔗 https://docs.keeper.io/jp/user-guides-jp</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
