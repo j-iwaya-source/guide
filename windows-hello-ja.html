@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Windows Hello 設定手順書</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Hiragino Sans','Yu Gothic',Arial,sans-serif; background:#f0f4f8; color:#1a1a2e; }
+
+.cover {
+  background: linear-gradient(135deg,#1a237e 0%,#283593 50%,#1565c0 100%);
+  min-height:460px; display:flex; align-items:center; justify-content:space-between;
+  padding:48px 64px; gap:40px; margin-bottom:32px; position:relative; overflow:hidden;
+}
+.cover::before { content:''; position:absolute; inset:0;
+  background: radial-gradient(circle at 20% 50%, rgba(100,180,255,0.15) 0%, transparent 60%),
+              radial-gradient(circle at 80% 30%, rgba(50,100,255,0.1) 0%, transparent 50%); }
+.cover-left { flex:1; position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:16px; }
+.cover-icon { font-size:90px; filter:drop-shadow(0 0 24px rgba(100,180,255,0.6)); }
+.mbadge { background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.4); border-radius:16px; padding:5px 14px; font-size:12px; color:#fff; font-weight:700; text-align:center; margin-bottom:6px; }
+.cover-right { flex:1.4; position:relative; z-index:1; color:#fff; }
+.cover-tag { background:rgba(255,200,0,0.9); color:#1a1a2e; font-size:12px; font-weight:700; padding:4px 14px; border-radius:4px; display:inline-block; margin-bottom:14px; }
+.cover-right h1 { font-size:32px; font-weight:900; line-height:1.3; margin-bottom:14px; }
+.cover-right .cover-sub { font-size:12px; opacity:0.75; margin-bottom:16px; }
+.cover-desc { font-size:13px; line-height:1.8; background:rgba(255,255,255,0.1); border-radius:8px; padding:14px; border-left:3px solid #64b5f6; margin-bottom:14px; }
+.cover-desc strong { color:#ffd700; }
+.time-bar { background:rgba(255,255,255,0.1); border-radius:8px; padding:10px 14px; border:1px solid rgba(255,255,255,0.2); }
+.tb-title { font-size:11px; font-weight:700; color:#ffd700; margin-bottom:6px; }
+.time-steps { display:flex; }
+.ts { flex:1; text-align:center; padding:5px 2px; border-right:1px solid rgba(255,255,255,0.2); }
+.ts:last-child { border-right:none; }
+.ts .ts-step { font-size:9px; opacity:0.7; }
+.ts .ts-min { font-size:13px; font-weight:900; color:#ffd700; }
+.ts .ts-label { font-size:9px; opacity:0.8; }
+
+.slide { background:#fff; margin:0 auto 28px; max-width:1000px; border-radius:16px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,0.10); }
+.slide-head { color:#fff; padding:18px 36px; display:flex; align-items:center; gap:14px; }
+.slide-head.blue { background:linear-gradient(90deg,#1a237e,#1565c0); }
+.slide-head.purple { background:linear-gradient(90deg,#4a148c,#7b1fa2); }
+.slide-head.green { background:linear-gradient(90deg,#1b5e20,#2e7d32); }
+.slide-head.orange { background:linear-gradient(90deg,#e65100,#f57c00); }
+.slide-head .snum { background:rgba(255,255,255,0.2); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:900; flex-shrink:0; }
+.slide-head h2 { font-size:21px; font-weight:800; }
+.slide-head .tag2 { margin-left:auto; background:rgba(255,200,0,0.9); color:#1a1a2e; font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; white-space:nowrap; }
+.slide-body { padding:30px 36px; }
+
+.warn-box { background:#fff3e0; border:2px solid #ff9800; border-radius:8px; padding:11px 14px; font-size:13px; color:#7b3a00; margin-top:8px; }
+.info-box { background:#e3f2fd; border:2px solid #1565c0; border-radius:8px; padding:11px 14px; font-size:13px; color:#0d47a1; margin-top:8px; }
+.success-box { background:#e8f5e9; border:2px solid #4caf50; border-radius:8px; padding:11px 14px; font-size:13px; color:#1b5e20; margin-top:8px; }
+.tip-box { background:#f3e5f5; border:2px solid #9c27b0; border-radius:8px; padding:11px 14px; font-size:13px; color:#4a148c; margin-top:8px; }
+
+.step-item { display:flex; gap:12px; align-items:flex-start; margin-bottom:10px; }
+.si-num { color:#fff; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:900; flex-shrink:0; margin-top:2px; }
+.si-num.blue { background:linear-gradient(135deg,#1565c0,#1a237e); }
+.si-num.purple { background:linear-gradient(135deg,#7b1fa2,#4a148c); }
+.si-num.green { background:linear-gradient(135deg,#2e7d32,#1b5e20); }
+.si-text { font-size:13px; line-height:1.7; color:#333; }
+.si-text strong { color:#1a237e; background:#e8f0ff; padding:1px 5px; border-radius:3px; }
+.si-text strong.p { color:#4a148c; background:#f3e5f5; }
+.si-text strong.g { color:#1b5e20; background:#e8f5e9; }
+.si-text strong.w { color:#c62828; background:#ffebee; }
+
+.flow-row { display:flex; align-items:flex-start; gap:6px; flex-wrap:nowrap; overflow-x:auto; padding-bottom:4px; }
+.fl-box { flex:0 0 auto; }
+.fl-arr { align-self:center; font-size:18px; color:#1565c0; font-weight:700; flex-shrink:0; }
+.step-label { font-size:10px; font-weight:700; color:#e65100; margin-bottom:4px; text-align:center; }
+
+.start-mock { background:#1a1a2e; border-radius:10px; padding:14px; font-size:11px; color:#fff; }
+.start-search { background:#2a2a3e; border-radius:6px; padding:6px 10px; display:flex; align-items:center; gap:6px; margin-bottom:10px; font-size:11px; color:#aaa; }
+.start-icons { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+.start-icon { background:#2a2a3e; border-radius:6px; padding:8px 4px; text-align:center; font-size:9px; }
+.start-icon .si-ico { font-size:18px; margin-bottom:3px; }
+.start-icon.hl { background:#1565c0; }
+
+.settings-mock { background:#f3f3f3; border-radius:8px; overflow:hidden; border:1px solid #ccc; font-size:11px; }
+.settings-header { background:#fff; padding:8px 12px; font-weight:700; font-size:12px; border-bottom:1px solid #eee; display:flex; align-items:center; gap:8px; }
+.settings-body { display:flex; }
+.settings-side { width:130px; background:#f9f9f9; border-right:1px solid #eee; padding:6px; }
+.settings-side-item { padding:5px 8px; border-radius:4px; font-size:10px; color:#555; display:flex; align-items:center; gap:6px; margin-bottom:2px; }
+.settings-side-item.active { background:#1565c0; color:#fff; }
+.settings-main { flex:1; padding:10px; }
+.settings-row { display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid #f0f0f0; font-size:11px; }
+.settings-row:last-child { border:none; }
+.settings-btn { background:#1565c0; color:#fff; border-radius:4px; padding:3px 10px; font-size:10px; font-weight:700; }
+.settings-btn.grey { background:#e0e0e0; color:#333; }
+
+.pin-dots { display:flex; gap:8px; justify-content:center; margin:8px 0; }
+.pin-dot { width:12px; height:12px; border-radius:50%; border:2px solid #666; }
+.pin-dot.filled { background:#7b1fa2; border-color:#7b1fa2; }
+.pin-keypad { display:grid; grid-template-columns:repeat(3,1fr); gap:4px; max-width:110px; margin:0 auto; }
+.pin-key { background:#f0f0f0; border-radius:4px; padding:5px; text-align:center; font-size:12px; font-weight:700; }
+
+.win-security { background:#fff; border-radius:10px; border:2px solid #1565c0; padding:14px; font-size:11px; box-shadow:0 4px 16px rgba(0,0,0,0.15); }
+.ws-header { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+.ws-icon { width:28px; height:28px; background:#1565c0; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:14px; color:#fff; }
+.ws-title { font-size:12px; font-weight:700; color:#1a237e; }
+.ws-field { border:1px solid #ddd; border-radius:4px; padding:6px 8px; font-size:11px; color:#555; margin-bottom:8px; background:#f9f9f9; width:100%; }
+.ws-btns { display:flex; gap:6px; justify-content:flex-end; }
+.ws-btn { padding:4px 12px; border-radius:4px; font-size:10px; font-weight:700; }
+.ws-btn.primary { background:#1565c0; color:#fff; }
+.ws-btn.secondary { background:#e0e0e0; color:#333; }
+
+.camera-view { background:#111; border-radius:8px; overflow:hidden; position:relative; }
+.cam-body { height:90px; display:flex; align-items:center; justify-content:center; position:relative; }
+.cam-face { font-size:44px; }
+.cam-frame { position:absolute; inset:10px; border:2px solid rgba(255,255,255,0.3); border-radius:6px; }
+.cam-frame.scanning { border-color:#4caf50; }
+.cam-frame.done { border-color:#4caf50; background:rgba(76,175,80,0.1); }
+.cam-progress { height:5px; background:#333; }
+.cam-fill { height:100%; background:linear-gradient(90deg,#1565c0,#42a5f5); border-radius:3px; }
+.cam-label { background:#1a1a2e; color:#fff; font-size:9px; padding:3px 8px; text-align:center; }
+.cam-label.ok { background:#2e7d32; }
+
+.lock-screen { background:linear-gradient(135deg,#1a1a2e,#0d47a1); border-radius:10px; padding:14px; color:#fff; text-align:center; }
+.ls-time { font-size:28px; font-weight:900; }
+.ls-date { font-size:10px; opacity:0.7; margin-bottom:8px; }
+.ls-status { font-size:11px; opacity:0.9; line-height:1.6; }
+.ls-face-icon { font-size:30px; margin:6px 0; }
+
+.pin-signin { background:linear-gradient(135deg,#1a1a2e,#0d47a1); border-radius:10px; padding:14px; color:#fff; font-size:11px; }
+.ps-title { text-align:center; font-size:12px; font-weight:700; margin-bottom:10px; }
+.ps-dots { display:flex; gap:8px; justify-content:center; margin-bottom:8px; }
+.ps-dot { width:14px; height:14px; border-radius:50%; border:2px solid rgba(255,255,255,0.6); }
+.ps-dot.filled { background:#fff; border-color:#fff; }
+.ps-keypad { display:grid; grid-template-columns:repeat(3,1fr); gap:4px; max-width:120px; margin:0 auto 8px; }
+.ps-key { background:rgba(255,255,255,0.15); border-radius:4px; padding:6px; text-align:center; font-size:13px; font-weight:700; }
+.ps-key.del { font-size:11px; }
+.ps-hint { font-size:9px; opacity:0.7; text-align:center; }
+
+.welcome-screen { background:linear-gradient(135deg,#1a1a2e,#0d47a1); border-radius:10px; padding:14px; color:#fff; text-align:center; }
+.ws-hello-logo { font-size:36px; margin-bottom:6px; }
+.ws-hello-msg { font-size:12px; font-weight:700; margin-bottom:4px; }
+.ws-hello-sub { font-size:10px; opacity:0.8; }
+
+.accuracy-mock { background:#f3f3f3; border-radius:8px; overflow:hidden; border:1px solid #ccc; font-size:11px; }
+.am-header { background:#1a237e; color:#fff; padding:5px 10px; font-size:11px; font-weight:700; }
+.am-body { background:#fff; padding:10px; }
+.am-item { display:flex; align-items:center; justify-content:space-between; padding:6px 0; border-bottom:1px solid #f0f0f0; }
+.am-item:last-child { border:none; }
+.am-btn { background:#1565c0; color:#fff; border-radius:4px; padding:2px 8px; font-size:10px; font-weight:700; }
+.am-btn.hl { background:#e65100; }
+
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.trouble-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.tr-card { border-radius:8px; padding:14px; }
+.tr-card.prob { background:#fff3e0; border-left:3px solid #e65100; }
+.tr-card.sol { background:#e8f5e9; border-left:3px solid #2e7d32; }
+.tr-card h4 { font-size:12px; font-weight:700; margin-bottom:6px; }
+.tr-card.prob h4 { color:#bf360c; }
+.tr-card.sol h4 { color:#1b5e20; }
+.tr-card p { font-size:12px; color:#444; line-height:1.6; }
+
+/* ============ 印刷・PDF用 改ページ制御 ============ */
+@media print {
+  body { background:#fff; }
+  .slide, .cover { box-shadow:none; margin:0; border-radius:0; }
+
+  /* スライド単位で改ページ */
+  .cover          { break-inside:avoid; page-break-inside:avoid; }
+  .slide          { break-before:page;  page-break-before:always;
+                    break-inside:avoid; page-break-inside:avoid; }
+
+  /* スライド内の各要素を途中で切らない */
+  .step-item      { break-inside:avoid; page-break-inside:avoid; }
+  .flow-row       { break-inside:avoid; page-break-inside:avoid; }
+  .two-col        { break-inside:avoid; page-break-inside:avoid; }
+  .trouble-grid   { break-inside:avoid; page-break-inside:avoid; }
+  .tr-card        { break-inside:avoid; page-break-inside:avoid; }
+  .warn-box,
+  .info-box,
+  .success-box,
+  .tip-box        { break-inside:avoid; page-break-inside:avoid; }
+  .camera-view    { break-inside:avoid; page-break-inside:avoid; }
+  .pin-signin     { break-inside:avoid; page-break-inside:avoid; }
+  .win-security   { break-inside:avoid; page-break-inside:avoid; }
+  .fl-box         { break-inside:avoid; page-break-inside:avoid; }
+  .slide-head     { break-inside:avoid; page-break-inside:avoid; }
+  .slide-body > * { break-inside:avoid; page-break-inside:avoid; }
+}
+</style>
+</head>
+<body>
+
+<!-- 表紙 -->
+<div class="cover">
+  <div class="cover-left">
+    <div class="cover-icon">🪟</div>
+    <div class="mbadge">😊 顔認識（Windows Hello）</div>
+    <div class="mbadge">🔢 PIN（暗証番号）</div>
+  </div>
+  <div class="cover-right">
+    <div class="cover-tag">社内向け手順書</div>
+    <h1>Windows Hello<br>顔認識・PIN<br>設定手順書</h1>
+    <div class="cover-sub">発行：IT事業部 コーポレートIT課　｜　2026年3月26日</div>
+    <div class="cover-desc">
+      本手順書では、Windowsデバイスへのサインインを<strong>パスワード不要</strong>で行うための<strong>顔認識（Windows Hello）</strong>および<strong>PIN</strong>の設定方法を説明します。<br>
+      設定することで、<strong>Google Workspaceへのパスキー認証</strong>も利用できるようになります。
+    </div>
+    <div class="time-bar">
+      <div class="tb-title">⏱ 作業の目安時間（合計：約7〜10分）</div>
+      <div class="time-steps">
+        <div class="ts"><div class="ts-step">事前確認</div><div class="ts-min">1分</div><div class="ts-label">確認</div></div>
+        <div class="ts"><div class="ts-step">Step 1</div><div class="ts-min">2分</div><div class="ts-label">PIN設定</div></div>
+        <div class="ts"><div class="ts-step">Step 2</div><div class="ts-min">1分</div><div class="ts-label">顔認識開始</div></div>
+        <div class="ts"><div class="ts-step">Step 3</div><div class="ts-min">1分</div><div class="ts-label">顔スキャン</div></div>
+        <div class="ts"><div class="ts-step">確認</div><div class="ts-min">2分</div><div class="ts-label">動作確認</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- はじめに -->
+<div class="slide">
+  <div class="slide-head blue"><div class="snum">📋</div><h2>はじめに：2つのサインイン方法と設定の流れ</h2></div>
+  <div class="slide-body">
+    <div class="two-col" style="margin-bottom:20px;">
+      <div style="background:linear-gradient(135deg,#e3f2fd,#bbdefb);border:2px solid #1565c0;border-radius:12px;padding:18px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <div style="font-size:28px;">😊</div>
+          <div style="font-size:14px;font-weight:800;color:#0d47a1;">顔認識（Windows Hello）</div>
+        </div>
+        <div style="font-size:12px;color:#333;line-height:1.7;">PCのカメラに顔を向けるだけで自動サインイン。最も手軽な方法。<br><br><strong style="color:#0d47a1;">使える場面：</strong>マスクなし・明るい場所・シャッターが開いているとき</div>
+      </div>
+      <div style="background:linear-gradient(135deg,#f3e5f5,#e1bee7);border:2px solid #7b1fa2;border-radius:12px;padding:18px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <div style="font-size:28px;">🔢</div>
+          <div style="font-size:14px;font-weight:800;color:#4a148c;">PIN（暗証番号）</div>
+        </div>
+        <div style="font-size:12px;color:#333;line-height:1.7;">数字（または英数字）を入力してサインイン。顔認識が使えない場合のバックアップ。<br><br><strong style="color:#4a148c;">使える場面：</strong>マスク着用時・暗い場所・カメラ不具合時</div>
+      </div>
+    </div>
+
+    <p style="font-size:13px;font-weight:700;color:#1a237e;margin-bottom:10px;">📌 設定の流れ（なぜPINを先に設定するのか？）</p>
+    <div style="display:flex;align-items:center;gap:0;margin-bottom:12px;">
+      <div style="flex:1;background:#f3e5f5;border:2px solid #7b1fa2;border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:22px;margin-bottom:6px;">🔢</div>
+        <div style="font-size:13px;font-weight:800;color:#4a148c;margin-bottom:4px;">① PINを先に設定</div>
+        <div style="font-size:11px;color:#555;">Windows 11では顔認識の設定に<br>PINが必須条件のため</div>
+      </div>
+      <div style="font-size:24px;color:#1565c0;font-weight:700;padding:0 12px;">→</div>
+      <div style="flex:1;background:#e3f2fd;border:2px solid #1565c0;border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:22px;margin-bottom:6px;">😊</div>
+        <div style="font-size:13px;font-weight:800;color:#0d47a1;margin-bottom:4px;">② 顔認識を設定</div>
+        <div style="font-size:11px;color:#555;">顔スキャン前にPINで<br>本人確認が行われる</div>
+      </div>
+      <div style="font-size:24px;color:#1565c0;font-weight:700;padding:0 12px;">→</div>
+      <div style="flex:1;background:#e8f5e9;border:2px solid #2e7d32;border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:22px;margin-bottom:6px;">✅</div>
+        <div style="font-size:13px;font-weight:800;color:#1b5e20;margin-bottom:4px;">③ 設定完了</div>
+        <div style="font-size:11px;color:#555;">両方のサインイン方法が<br>使えるようになる</div>
+      </div>
+    </div>
+
+    <div class="info-box">
+      💡 <strong>すでにPINを設定済みの方はStep 2から始めてください。</strong><br>
+      PINが設定済みかどうかの確認方法：スタート → 設定 → アカウント → サインインオプション を開き、「PIN（Windows Hello）」の欄に「変更」「削除」ボタンがあれば設定済みです。
+    </div>
+
+    <p style="font-size:13px;font-weight:700;color:#1a237e;margin-bottom:8px;margin-top:16px;">📌 設定画面の開き方（Step 1・2で共通）</p>
+    <div class="flow-row">
+      <div class="fl-box" style="width:150px;">
+        <div class="step-label">① スタートボタンをクリック</div>
+        <div class="start-mock">
+          <div class="start-search">🔍 検索</div>
+          <div class="start-icons">
+            <div class="start-icon hl"><div class="si-ico">⚙️</div>設定</div>
+            <div class="start-icon"><div class="si-ico">📁</div>エクスプローラー</div>
+            <div class="start-icon"><div class="si-ico">🌐</div>Edge</div>
+            <div class="start-icon"><div class="si-ico">📧</div>メール</div>
+          </div>
+          <div style="font-size:9px;color:#aaa;margin-top:6px;text-align:center;">⚙️設定をクリック ↑</div>
+        </div>
+      </div>
+      <div class="fl-arr">→</div>
+      <div class="fl-box" style="width:170px;">
+        <div class="step-label">② 「アカウント」をクリック</div>
+        <div class="settings-mock">
+          <div class="settings-header">⚙️ 設定</div>
+          <div class="settings-body">
+            <div class="settings-side">
+              <div class="settings-side-item">🏠 ホーム</div>
+              <div class="settings-side-item">🖥️ システム</div>
+              <div class="settings-side-item active">👤 アカウント ←</div>
+              <div class="settings-side-item">🔒 プライバシー</div>
+            </div>
+            <div class="settings-main" style="font-size:10px;color:#888;">アカウント設定...</div>
+          </div>
+        </div>
+      </div>
+      <div class="fl-arr">→</div>
+      <div class="fl-box" style="width:180px;">
+        <div class="step-label">③「サインインオプション」をクリック</div>
+        <div class="settings-mock">
+          <div class="settings-header">👤 アカウント</div>
+          <div class="settings-body">
+            <div class="settings-side" style="width:100%;border:none;padding:0;">
+              <div class="settings-side-item">📧 メールとアカウント</div>
+              <div class="settings-side-item active">🔐 サインインオプション ←</div>
+              <div class="settings-side-item">🏢 職場または学校</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="fl-arr">→</div>
+      <div class="fl-box" style="flex:1;">
+        <div class="step-label">④ サインインオプション画面が開く</div>
+        <div class="settings-mock">
+          <div class="settings-header">🔐 サインインオプション</div>
+          <div class="settings-main">
+            <div class="settings-row"><span>😊 顔認識（Windows Hello）</span><span class="settings-btn">セットアップ</span></div>
+            <div class="settings-row"><span>🔢 PIN（Windows Hello）</span><span class="settings-btn">セットアップ</span></div>
+            <div class="settings-row"><span>🔑 セキュリティキー</span><span class="settings-btn grey">管理</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 1: PIN設定 -->
+<div class="slide">
+  <div class="slide-head purple"><div class="snum">1</div><h2>PINの設定（顔認識の前提条件）</h2><div class="tag2">約2分</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;font-weight:700;color:#4a148c;margin-bottom:8px;">📌 サインインオプション画面でPINの「セットアップ」をクリック</p>
+    <div class="flow-row" style="margin-bottom:16px;">
+      <div class="fl-box" style="width:220px;">
+        <div class="step-label">① PIN（Windows Hello）をクリック</div>
+        <div class="settings-mock">
+          <div class="settings-header">🔐 サインインオプション</div>
+          <div class="settings-main">
+            <div class="settings-row" style="opacity:0.4;"><span>😊 顔認識（Windows Hello）</span><span class="settings-btn">セットアップ</span></div>
+            <div class="settings-row" style="background:#f3e5f5;border-radius:4px;padding:4px 0;"><span style="font-weight:700;color:#4a148c;">🔢 PIN（Windows Hello）</span><span class="settings-btn" style="background:#7b1fa2;">セットアップ ←</span></div>
+            <div class="settings-row" style="opacity:0.4;"><span>🔑 セキュリティキー</span><span class="settings-btn grey">管理</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="fl-arr">→</div>
+      <div class="fl-box" style="width:220px;">
+        <div class="step-label">② Windowsセキュリティが開く（パスワード入力）</div>
+        <div class="win-security">
+          <div class="ws-header">
+            <div class="ws-icon">🪟</div>
+            <div class="ws-title">Windowsセキュリティ</div>
+          </div>
+          <div style="font-size:11px;color:#555;margin-bottom:8px;">本人確認のため、現在のWindowsパスワードを入力してください。</div>
+          <div style="font-size:10px;color:#1a237e;background:#e8f0ff;border-radius:4px;padding:6px 8px;margin-bottom:8px;">
+            💡 ここで入力するのは<strong>Windowsにサインインするときのパスワード</strong>です。Googleのパスワードとは別です。
+          </div>
+          <input class="ws-field" type="password" value="••••••••" readonly>
+          <div class="ws-btns">
+            <div class="ws-btn secondary">キャンセル</div>
+            <div class="ws-btn primary">OK ←</div>
+          </div>
+        </div>
+      </div>
+      <div class="fl-arr">→</div>
+      <div class="fl-box" style="flex:1;">
+        <div class="step-label">③ PINを入力して設定完了</div>
+        <div style="background:#fff;border-radius:10px;border:2px solid #7b1fa2;padding:14px;font-size:11px;">
+          <div style="font-weight:700;color:#4a148c;margin-bottom:8px;text-align:center;">PINのセットアップ</div>
+          <div class="pin-dots">
+            <div class="pin-dot filled"></div><div class="pin-dot filled"></div><div class="pin-dot filled"></div><div class="pin-dot filled"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+          </div>
+          <div class="pin-keypad">
+            <div class="pin-key">1</div><div class="pin-key">2</div><div class="pin-key">3</div>
+            <div class="pin-key">4</div><div class="pin-key">5</div><div class="pin-key">6</div>
+            <div class="pin-key">7</div><div class="pin-key">8</div><div class="pin-key">9</div>
+            <div class="pin-key">*</div><div class="pin-key" style="background:#7b1fa2;color:#fff;">0</div><div class="pin-key">⌫</div>
+          </div>
+          <div style="background:#7b1fa2;color:#fff;border-radius:4px;padding:4px;text-align:center;font-size:10px;font-weight:700;margin-top:8px;">OK ←</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="step-item"><div class="si-num purple">1</div><div class="si-text">サインインオプション画面で<strong class="p">「PIN（Windows Hello）」</strong>をクリックしてリストを展開し、<strong class="p">「セットアップ」</strong>をクリックします。</div></div>
+      <div class="step-item"><div class="si-num purple">2</div><div class="si-text">「Windowsセキュリティ」ウィンドウが表示されるので、<strong class="p">Windowsにサインインするときのパスワード</strong>を入力し<strong class="p">「OK」</strong>をクリックします。</div></div>
+      <div class="step-item"><div class="si-num purple">3</div><div class="si-text">PINのセットアップ画面で<strong class="p">任意の数字</strong>を入力し<strong class="p">「OK」</strong>をクリックします。</div></div>
+      <div class="info-box">
+        💡 <strong>「パスワードを入力したのに、なぜPINも設定するの？」</strong><br>
+        パスワードはWindowsが本人確認するために一度だけ求めるものです。PINはその後のサインインを<strong>このデバイス専用</strong>の短い番号で行うための仕組みです。PINはインターネットに送信されず、このPC内だけで使われるため安全です。
+      </div>
+      <div style="background:#f3e5f5;border-radius:10px;padding:14px;border:2px solid #7b1fa2;">
+        <div style="font-size:13px;font-weight:800;color:#4a148c;margin-bottom:8px;">💡 PINのポイント</div>
+        <div style="font-size:12px;color:#333;line-height:1.9;">
+          ・数字のみ（4桁以上）で設定できます<br>
+          ・「英字と記号を含める」にチェックを入れると英数字・記号も使用可能<br>
+          ・<strong>このデバイス専用</strong>のため、他のPCでは使えません<br>
+          ・必ずメモを取るなどして控えておいてください
+        </div>
+      </div>
+      <div class="success-box">✅ 「PIN（Windows Hello）」に「変更」「削除」が表示されていればPINの設定完了です。次のStep 2へ進んでください。</div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 2: 顔認識設定開始 -->
+<div class="slide">
+  <div class="slide-head blue"><div class="snum">2</div><h2>顔認識（Windows Hello）の設定開始</h2><div class="tag2">約1分</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;font-weight:700;color:#1a237e;margin-bottom:8px;">📌 顔認識の「セットアップ」をクリック</p>
+    <div class="flow-row" style="margin-bottom:16px;">
+      <div class="fl-box" style="width:220px;">
+        <div class="step-label">① 顔認識（Windows Hello）をクリック</div>
+        <div class="settings-mock">
+          <div class="settings-header">🔐 サインインオプション</div>
+          <div class="settings-main">
+            <div class="settings-row" style="background:#e3f2fd;border-radius:4px;padding:4px 0;"><span style="font-weight:700;color:#0d47a1;">😊 顔認識（Windows Hello）</span><span class="settings-btn">セットアップ ←</span></div>
+            <div class="settings-row" style="opacity:0.5;"><span>🔢 PIN（Windows Hello）</span><span style="font-size:10px;color:#4caf50;font-weight:700;">✅ 設定済み</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="fl-arr">→</div>
+      <div class="fl-box" style="width:200px;">
+        <div class="step-label">② セットアップウィンドウ「開始する」</div>
+        <div style="background:#fff;border-radius:10px;border:1px solid #ddd;padding:14px;font-size:11px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+          <div style="font-size:28px;margin-bottom:8px;">😊</div>
+          <div style="font-weight:700;font-size:12px;color:#333;margin-bottom:6px;">Windows Helloセットアップ</div>
+          <div style="font-size:10px;color:#555;margin-bottom:10px;line-height:1.5;">カメラを使って顔を登録します。プライバシーシャッターが開いていることを確認してください。</div>
+          <div style="background:#1565c0;color:#fff;border-radius:5px;padding:5px;font-size:11px;font-weight:700;">開始する ←</div>
+        </div>
+      </div>
+      <div class="fl-arr">→</div>
+      <div class="fl-box" style="flex:1;">
+        <div class="step-label">③ PIN入力（本人確認）→ 顔スキャンへ</div>
+        <div style="background:#fff;border-radius:10px;border:1px solid #ddd;padding:14px;font-size:11px;box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+          <div style="font-weight:700;color:#333;margin-bottom:6px;text-align:center;">ユーザーを確認しています</div>
+          <div style="background:#e8f0ff;border-radius:4px;padding:6px 8px;font-size:10px;color:#0d47a1;margin-bottom:8px;">
+            💡 「なぜまたPINを入力するの？」<br>PINは顔登録前の<strong>本人確認</strong>のために必要です。1回だけです。
+          </div>
+          <div class="pin-dots" style="margin:8px 0;">
+            <div class="pin-dot filled"></div><div class="pin-dot filled"></div><div class="pin-dot filled"></div><div class="pin-dot filled"></div>
+          </div>
+          <div style="background:#1565c0;color:#fff;border-radius:5px;padding:4px;text-align:center;font-size:10px;font-weight:700;">→ 顔スキャンへ進む</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="step-item"><div class="si-num blue">1</div><div class="si-text">サインインオプション画面で<strong>「顔認識（Windows Hello）」</strong>をクリックし、<strong>「セットアップ」</strong>をクリックします。</div></div>
+      <div class="step-item"><div class="si-num blue">2</div><div class="si-text">「Windows Hello セットアップ」画面が表示されます。<strong>プライバシーシャッターが開いていること</strong>を確認し、<strong>「開始する」</strong>をクリックします。</div></div>
+      <div class="step-item"><div class="si-num blue">3</div><div class="si-text">「ユーザーを確認しています」と表示され、<strong>Step 1で設定したPINの入力</strong>を求められます。PINを入力して本人確認を完了します。</div></div>
+      <div class="warn-box">
+        ⚠️ <strong>「このオプションは現在使用できません」と表示される場合</strong><br>
+        組織のポリシーによってサインイン方法が制限されている可能性があります。<strong>#keeper-support</strong>チャンネルまたはIT課にお問い合わせください。
+      </div>
+      <div class="warn-box" style="margin-top:4px;">
+        ⚠️ プライバシーシャッターが閉じていると顔認識を設定できません。カメラのシャッターが開いているか必ず確認してください。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 3: 顔スキャン -->
+<div class="slide">
+  <div class="slide-head blue"><div class="snum">3</div><h2>顔のスキャン登録</h2><div class="tag2">約30秒〜1分</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;font-weight:700;color:#1a237e;margin-bottom:8px;">📌 スキャンの流れ（画面イメージ）</p>
+    <div style="display:grid;grid-template-columns:1fr 30px 1fr 30px 1fr;gap:8px;align-items:center;margin-bottom:16px;">
+      <div>
+        <div style="font-size:10px;font-weight:700;color:#e65100;margin-bottom:4px;text-align:center;">① カメラ映像が表示される</div>
+        <div class="camera-view">
+          <div class="cam-body"><div class="cam-face">😐</div><div class="cam-frame"></div></div>
+          <div class="cam-progress"><div class="cam-fill" style="width:0%;"></div></div>
+          <div class="cam-label">カメラを正面から見てください</div>
+        </div>
+      </div>
+      <div style="font-size:20px;color:#1565c0;font-weight:700;text-align:center;">→</div>
+      <div>
+        <div style="font-size:10px;font-weight:700;color:#1565c0;margin-bottom:4px;text-align:center;">② スキャン中（約3〜5秒）</div>
+        <div class="camera-view">
+          <div class="cam-body"><div class="cam-face">😊</div><div class="cam-frame scanning"></div></div>
+          <div class="cam-progress"><div class="cam-fill" style="width:65%;"></div></div>
+          <div class="cam-label" style="background:#1565c0;">スキャン中... そのまま見続けてください</div>
+        </div>
+      </div>
+      <div style="font-size:20px;color:#1565c0;font-weight:700;text-align:center;">→</div>
+      <div>
+        <div style="font-size:10px;font-weight:700;color:#2e7d32;margin-bottom:4px;text-align:center;">③ スキャン完了！</div>
+        <div class="camera-view">
+          <div class="cam-body" style="background:#0a1f0a;"><div class="cam-face">😊</div><div class="cam-frame done"></div></div>
+          <div class="cam-progress"><div class="cam-fill" style="width:100%;background:linear-gradient(90deg,#2e7d32,#4caf50);"></div></div>
+          <div class="cam-label ok">✅ 顔の登録が完了しました</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="step-item"><div class="si-num blue">4</div><div class="si-text">Webカメラの映像が画面に表示されます。<strong>フレームの中央に顔が映るよう</strong>にモニターの位置と向きを調整し、<strong>カメラをまっすぐ見続けます。</strong></div></div>
+      <div class="info-box">
+        ⏱ <strong>スキャンは約3〜5秒で自動的に完了します。</strong><br>
+        プログレスバーが右に伸びていれば順調にスキャンが進んでいます。バーが止まる場合は、顔の位置を少し調整してみてください。
+      </div>
+      <div class="warn-box">😷 マスク着用の方はマスクを外してください。登録は素顔で行う必要があります。</div>
+      <div class="step-item"><div class="si-num blue">5</div><div class="si-text">スキャンが完了すると<strong>「すべての設定が完了しました」</strong>という画面が表示されます。<strong>「閉じる」</strong>をクリックします。</div></div>
+      <div style="background:#fff;border-radius:10px;border:2px solid #4caf50;padding:14px;font-size:11px;text-align:center;">
+        <div style="font-size:24px;margin-bottom:6px;">✅</div>
+        <div style="font-weight:700;color:#1b5e20;font-size:13px;margin-bottom:4px;">すべての設定が完了しました</div>
+        <div style="font-size:11px;color:#555;margin-bottom:8px;">顔認識とPINの設定が完了しました。次回サインインからパスワード不要になります。</div>
+        <div style="background:#4caf50;color:#fff;border-radius:5px;padding:5px 20px;font-size:11px;font-weight:700;display:inline-block;">閉じる ←</div>
+      </div>
+      <div class="step-item"><div class="si-num blue">6</div><div class="si-text">設定の「顔認識（Windows Hello）」に<strong>「認識精度を高める」「削除」</strong>が表示されていれば設定完了です。</div></div>
+      <div class="tip-box">
+        💡 <strong>認識精度を高めるには（任意・推奨）</strong><br>
+        「認識精度を高める」をクリックして追加登録することで精度が向上します。メガネをかけている方はメガネあり・なし両方を登録しておくと効果的です。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 4: サインイン方法 -->
+<div class="slide">
+  <div class="slide-head green"><div class="snum">4</div><h2>サインイン方法（動作確認）</h2></div>
+  <div class="slide-body">
+    <div class="info-box" style="margin-bottom:14px;">
+      💡 <strong>ロック画面を表示するには：</strong>キーボードの<strong>Windowsキー ＋ L</strong>を同時に押すか、スタート → 電源アイコン → 「スリープ」でロック画面が表示されます。
+    </div>
+    <div class="two-col">
+      <div style="background:linear-gradient(135deg,#e3f2fd,#bbdefb);border:2px solid #1565c0;border-radius:12px;padding:18px;">
+        <h3 style="font-size:14px;font-weight:800;color:#0d47a1;margin-bottom:12px;">😊 顔認識でサインイン</h3>
+        <div class="flow-row" style="margin-bottom:10px;">
+          <div style="flex:1;">
+            <div class="step-label">ロック画面</div>
+            <div class="lock-screen">
+              <div class="ls-time">10:24</div>
+              <div class="ls-date">2026年3月26日（木）</div>
+              <div class="ls-face-icon">😊</div>
+              <div class="ls-status">顔認識待機中...<br>カメラを見てください</div>
+            </div>
+          </div>
+          <div class="fl-arr" style="align-self:center;">→</div>
+          <div style="flex:1;">
+            <div class="step-label">認識成功！</div>
+            <div class="welcome-screen">
+              <div class="ws-hello-logo">🪟</div>
+              <div class="ws-hello-msg">おかえりなさい、<br>J-Iwayaさん！</div>
+              <div class="ws-hello-sub">Windowsにサインインし直すには<br>ロック画面を解除してください</div>
+            </div>
+          </div>
+        </div>
+        <div class="step-item"><div class="si-num green">1</div><div class="si-text" style="font-size:12px;"><strong class="g">プライバシーシャッターが開いていること</strong>を確認し、ロック画面の前に座ります。</div></div>
+        <div class="step-item"><div class="si-num green">2</div><div class="si-text" style="font-size:12px;"><strong class="g">カメラを正面からまっすぐ見続けます。</strong></div></div>
+        <div class="step-item"><div class="si-num green">3</div><div class="si-text" style="font-size:12px;">「おかえりなさい、〇〇さん！」と表示されたら<strong class="g">Enterキーまたは画面をクリック</strong>してデスクトップへ進みます。</div></div>
+      </div>
+      <div style="background:linear-gradient(135deg,#f3e5f5,#e1bee7);border:2px solid #7b1fa2;border-radius:12px;padding:18px;">
+        <h3 style="font-size:14px;font-weight:800;color:#4a148c;margin-bottom:12px;">🔢 PINでサインイン</h3>
+        <div style="margin-bottom:10px;">
+          <div class="step-label" style="text-align:left;font-size:11px;margin-bottom:5px;">PIN入力画面のイメージ</div>
+          <div class="pin-signin">
+            <div class="ps-title">PINを入力してサインイン</div>
+            <div class="ps-dots">
+              <div class="ps-dot filled"></div><div class="ps-dot filled"></div><div class="ps-dot filled"></div><div class="ps-dot filled"></div><div class="ps-dot"></div><div class="ps-dot"></div>
+            </div>
+            <div class="ps-keypad">
+              <div class="ps-key">1</div><div class="ps-key">2</div><div class="ps-key">3</div>
+              <div class="ps-key">4</div><div class="ps-key">5</div><div class="ps-key">6</div>
+              <div class="ps-key">7</div><div class="ps-key">8</div><div class="ps-key">9</div>
+              <div class="ps-key">*</div><div class="ps-key">0</div><div class="ps-key del">⌫</div>
+            </div>
+            <div class="ps-hint">サインインオプション → 顔認識に切り替えも可能</div>
+          </div>
+        </div>
+        <div class="step-item"><div class="si-num purple">1</div><div class="si-text" style="font-size:12px;">ロック画面で<strong class="p">「サインインオプション」</strong>または<strong class="p">「PIN」</strong>をクリックします。</div></div>
+        <div class="step-item"><div class="si-num purple">2</div><div class="si-text" style="font-size:12px;">設定した<strong class="p">PINを入力</strong>します。入力が完了すると自動でサインインされます。</div></div>
+        <div style="margin-top:8px;background:rgba(255,255,255,0.7);border-radius:6px;padding:8px;font-size:11px;color:#4a148c;border:1px dashed #7b1fa2;">
+          💡 顔認識が使えない場面（マスク着用・暗い場所）ではPINでサインインしてください。
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 5: トラブルシューティング -->
+<div class="slide">
+  <div class="slide-head orange"><div class="snum">5</div><h2>よくある問題と対処法</h2></div>
+  <div class="slide-body">
+    <div class="trouble-grid">
+      <div class="tr-card prob"><h4>😔 顔が認識されない</h4><p>「認識できませんでした」と表示される</p></div>
+      <div class="tr-card sol">
+        <h4>✅ 対処法</h4>
+        <p>① プライバシーシャッターが開いているか確認<br>② マスクを外して試す<br>③ 照明が暗すぎないか確認<br>④ 「認識精度を高める」で再登録<br>⑤ 解決しない場合はPINでサインイン</p>
+      </div>
+      <div class="tr-card prob"><h4>🔢 PINを忘れた</h4><p>PINが思い出せない</p></div>
+      <div class="tr-card sol">
+        <h4>✅ 対処法</h4>
+        <p>サインイン画面の<strong>「PINを忘れた場合」</strong>をクリック → Microsoftアカウントまたはドメインパスワードで本人確認 → 新しいPINを再設定できます。対応できない場合は <strong>#keeper-support</strong> へ。</p>
+      </div>
+      <div class="tr-card prob"><h4>⚙️ 「セットアップ」ボタンが出ない</h4><p>「このオプションは現在使用できません」と表示される</p></div>
+      <div class="tr-card sol">
+        <h4>✅ 対処法</h4>
+        <p>組織ポリシーで制限中の可能性があります。Slack <strong>#keeper-support</strong> チャンネルへお問い合わせください。IT課がポリシー設定を確認します。</p>
+      </div>
+      <div class="tr-card prob"><h4>🔄 顔認識を再登録したい</h4><p>精度が悪いのでリセットしたい</p></div>
+      <div class="tr-card sol">
+        <h4>✅ 対処法</h4>
+        <p>設定 → アカウント → サインインオプション → 「顔認識（Windows Hello）」→「削除」→ 削除後「セットアップ」から再登録。メガネのあり・なし両方を登録すると精度が向上します。</p>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;">
+      <p style="font-size:13px;font-weight:700;color:#e65100;margin-bottom:8px;">📌 「顔が認識されにくい」場合：認識精度を高める操作方法</p>
+      <div class="flow-row">
+        <div class="fl-box" style="width:200px;">
+          <div class="step-label">① サインインオプションを開く</div>
+          <div class="accuracy-mock">
+            <div class="am-header">🔐 サインインオプション</div>
+            <div class="am-body">
+              <div class="am-item"><span>😊 顔認識（Windows Hello）</span></div>
+              <div class="am-item" style="padding-left:12px;"><span style="font-size:10px;">認識精度を高める</span><span class="am-btn hl">クリック ←</span></div>
+              <div class="am-item" style="padding-left:12px;"><span style="font-size:10px;">削除</span><span class="am-btn">削除</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="fl-arr">→</div>
+        <div class="fl-box" style="width:180px;">
+          <div class="step-label">② PINを再入力して開始</div>
+          <div style="background:#fff;border-radius:8px;border:1px solid #ddd;padding:12px;font-size:11px;text-align:center;">
+            <div style="font-size:20px;margin-bottom:6px;">😊</div>
+            <div style="font-weight:700;margin-bottom:6px;">認識精度を高める</div>
+            <div style="font-size:10px;color:#555;margin-bottom:8px;">PINを入力して本人確認してください</div>
+            <div class="pin-dots" style="margin:6px 0;"><div class="pin-dot filled"></div><div class="pin-dot filled"></div><div class="pin-dot filled"></div><div class="pin-dot filled"></div></div>
+            <div style="background:#1565c0;color:#fff;border-radius:4px;padding:4px;font-size:10px;font-weight:700;">開始する ←</div>
+          </div>
+        </div>
+        <div class="fl-arr">→</div>
+        <div class="fl-box" style="flex:1;">
+          <div class="step-label">③ 再度顔をスキャンして精度向上</div>
+          <div class="camera-view">
+            <div class="cam-body"><div class="cam-face">🤓</div><div class="cam-frame scanning"></div></div>
+            <div class="cam-progress"><div class="cam-fill" style="width:50%;"></div></div>
+            <div class="cam-label">メガネあり・なし両方登録すると効果的</div>
+          </div>
+          <div style="font-size:11px;color:#2e7d32;font-weight:700;margin-top:6px;text-align:center;">完了後、認識率が向上します</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;background:#e8eaf6;border-radius:10px;padding:14px 18px;font-size:13px;">
+      ❓ 上記で解決しない場合は Slack <strong>#keeper-support</strong> チャンネルまたはコーポレートIT課までお問い合わせください。
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

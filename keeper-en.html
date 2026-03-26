@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Keeper Security Setup Guide</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Helvetica Neue',Arial,sans-serif; background:#f0f4f8; color:#1a1a2e; }
+
+.cover {
+  background: linear-gradient(135deg,#0d1b4b 0%,#1a3a6b 50%,#0a7a7a 100%);
+  min-height:480px; display:flex; align-items:center; justify-content:space-between;
+  padding:48px 64px; gap:40px; margin-bottom:32px; position:relative; overflow:hidden;
+}
+.cover::before { content:''; position:absolute; inset:0;
+  background: radial-gradient(circle at 30% 50%, rgba(0,200,200,0.15) 0%, transparent 60%),
+              radial-gradient(circle at 70% 30%, rgba(100,150,255,0.1) 0%, transparent 50%); }
+.cover-left { flex:1; position:relative; z-index:1; }
+.cover-icon { font-size:100px; line-height:1; filter:drop-shadow(0 0 30px rgba(0,220,220,0.5)); }
+.cover-right { flex:1.2; position:relative; z-index:1; color:#fff; }
+.cover-tag { background:rgba(255,200,0,0.9); color:#1a1a2e; font-size:13px; font-weight:700; padding:4px 14px; border-radius:4px; display:inline-block; margin-bottom:16px; }
+.cover-right h1 { font-size:36px; font-weight:900; line-height:1.3; margin-bottom:12px; text-shadow:0 2px 8px rgba(0,0,0,0.3); }
+.cover-right .cover-sub { font-size:12px; opacity:0.8; margin-bottom:16px; }
+.cover-right .cover-desc { font-size:13px; line-height:1.8; background:rgba(255,255,255,0.1); border-radius:8px; padding:14px; border-left:3px solid #00d4d4; margin-bottom:16px; }
+.cover-right .cover-desc strong { color:#ffd700; }
+.time-bar { background:rgba(255,255,255,0.1); border-radius:10px; padding:12px 16px; border:1px solid rgba(255,255,255,0.2); }
+.time-bar .tb-title { font-size:12px; font-weight:700; color:#ffd700; margin-bottom:8px; }
+.time-steps { display:flex; gap:0; }
+.ts { flex:1; text-align:center; padding:6px 4px; border-right:1px solid rgba(255,255,255,0.2); }
+.ts:last-child { border-right:none; }
+.ts .ts-step { font-size:9px; opacity:0.7; }
+.ts .ts-min { font-size:14px; font-weight:900; color:#ffd700; }
+.ts .ts-label { font-size:9px; opacity:0.8; }
+.time-total { font-size:11px; margin-top:8px; text-align:right; opacity:0.85; }
+
+.slide { background:#fff; margin:0 auto 32px; max-width:1000px; border-radius:16px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,0.10); }
+.slide-head { background:linear-gradient(90deg,#0d1b4b,#1a6090); color:#fff; padding:18px 36px; display:flex; align-items:center; gap:14px; }
+.slide-head .snum { background:rgba(255,255,255,0.2); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:900; flex-shrink:0; }
+.slide-head h2 { font-size:22px; font-weight:800; }
+.slide-head .tag2 { margin-left:auto; background:rgba(255,200,0,0.9); color:#1a1a2e; font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; white-space:nowrap; }
+.slide-body { padding:32px 36px; }
+
+.warn-box { background:#fff3cd; border:2px solid #ffc107; border-radius:8px; padding:12px 16px; font-size:13px; color:#7b4800; }
+.warn-box strong { color:#c62828; }
+.important-box { background:#fff3e0; border:2px solid #ff9800; border-radius:8px; padding:12px 16px; font-size:13px; color:#7b3a00; }
+.important-box .i-title { font-weight:800; color:#e65100; margin-bottom:6px; font-size:14px; }
+.success-box { background:#e8f5e9; border:2px solid #4caf50; border-radius:8px; padding:12px 16px; font-size:13px; color:#1b5e20; margin-top:8px; }
+.info-box { background:#e3f2fd; border:2px solid #1565c0; border-radius:8px; padding:12px 16px; font-size:13px; color:#0d47a1; margin-top:8px; }
+
+.step-item { display:flex; gap:12px; align-items:flex-start; margin-bottom:10px; }
+.si-num { background:linear-gradient(135deg,#1a6090,#0d1b4b); color:#fff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:900; flex-shrink:0; margin-top:1px; }
+.si-text { font-size:13px; line-height:1.7; color:#333; }
+.si-text strong { color:#0d1b4b; background:#e8f0ff; padding:1px 5px; border-radius:3px; }
+
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.col-step { display:flex; gap:10px; align-items:flex-start; margin-bottom:10px; }
+.cs-num { background:#0d1b4b; color:#fff; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:900; flex-shrink:0; }
+.cs-text { font-size:12px; line-height:1.6; color:#333; }
+.cs-text strong { background:rgba(255,200,0,0.5); padding:0 4px; border-radius:2px; }
+
+.flow-arrow-row { display:flex; align-items:flex-start; gap:6px; flex-wrap:nowrap; overflow-x:auto; }
+.fa-box { flex:0 0 auto; }
+.fa-arr { align-self:center; font-size:18px; color:#1565c0; font-weight:700; flex-shrink:0; padding:0 2px; }
+.step-label { font-size:10px; font-weight:700; color:#e65100; margin-bottom:4px; text-align:center; }
+
+.chrome-mock { background:#f1f3f4; border-radius:10px; overflow:hidden; border:1px solid #ccc; font-size:11px; }
+.chrome-toolbar { background:#fff; padding:5px 8px; display:flex; align-items:center; gap:5px; border-bottom:1px solid #ddd; }
+.chrome-addr { flex:1; background:#f1f3f4; border-radius:20px; padding:3px 10px; font-size:10px; color:#555; }
+.c-btn { font-size:14px; color:#555; }
+.c-more { font-size:14px; font-weight:700; background:rgba(255,200,0,0.3); border:1px solid #ffc107; border-radius:4px; padding:0 5px; }
+
+.kp { background:#fff; border-radius:10px; overflow:hidden; border:2px solid #ffc107; box-shadow:0 4px 12px rgba(0,0,0,0.15); font-size:11px; }
+.kp-head { background:#1a1a2e; color:#fff; padding:7px 10px; display:flex; align-items:center; justify-content:space-between; }
+.kp-logo { display:flex; align-items:center; gap:5px; font-weight:700; font-size:12px; }
+.kp-logo-icon { width:20px; height:20px; background:#ffc107; border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:11px; }
+.kp-icons { display:flex; gap:3px; }
+.kp-icon { width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; }
+.kp-body { padding:7px 9px; }
+.kp-record { display:flex; align-items:center; justify-content:space-between; padding:5px 6px; background:#f8f9ff; border-radius:5px; border:1px solid #e0e4f0; margin-bottom:3px; }
+.kp-record-info { display:flex; align-items:center; gap:6px; }
+.kp-record-icon { width:22px; height:22px; border-radius:4px; background:#e8f0ff; display:flex; align-items:center; justify-content:center; font-size:12px; }
+.kp-fill-btn { background:#1565c0; color:#fff; border-radius:4px; padding:3px 7px; font-size:10px; font-weight:700; }
+
+.dd { background:#fff; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.15); border:1px solid #ddd; overflow:hidden; font-size:11px; }
+.dd-item { padding:7px 12px; display:flex; align-items:center; gap:7px; }
+.dd-item.hl { background:#e8f0ff; color:#0d47a1; font-weight:700; border-left:3px solid #1565c0; }
+.dd-item.red { color:#e53935; }
+.dd-div { height:1px; background:#eee; }
+
+.vault-screen { background:#fff; border:1px solid #ddd; border-radius:8px; overflow:hidden; font-size:11px; }
+.vs-head { background:#0d1b4b; color:#fff; padding:7px 10px; display:flex; align-items:center; justify-content:space-between; }
+.vs-logo { font-size:12px; font-weight:700; }
+.vs-email { font-size:10px; background:rgba(255,200,0,0.3); border:1px solid #ffc107; padding:2px 8px; border-radius:12px; }
+.vs-body { display:flex; }
+.vs-side { width:80px; background:#f8f9fa; border-right:1px solid #eee; padding:5px; }
+.vs-side-item { padding:4px 6px; border-radius:4px; font-size:10px; color:#555; margin-bottom:2px; }
+.vs-side-item.active { background:#e8f0ff; color:#0d47a1; font-weight:700; }
+.vs-main { flex:1; padding:8px; }
+.vs-empty { text-align:center; padding:16px 0; color:#bbb; font-size:12px; }
+
+.setting-modal { background:#fff; border-radius:10px; border:1px solid #ddd; overflow:hidden; font-size:11px; box-shadow:0 4px 16px rgba(0,0,0,0.12); }
+.sm-head { background:#f8f8f8; padding:8px 12px; font-weight:700; font-size:12px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; }
+.sm-body { display:flex; }
+.sm-side { width:110px; border-right:1px solid #eee; padding:6px; }
+.sm-side-item { display:flex; align-items:center; gap:5px; padding:5px 6px; border-radius:5px; font-size:10px; color:#555; margin-bottom:2px; }
+.sm-side-item.active { background:#ff6f00; color:#fff; font-weight:700; }
+.sm-side-icon { width:18px; height:18px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:10px; flex-shrink:0; }
+.sm-main { flex:1; padding:10px; }
+
+.phone { background:#1a1a2e; border-radius:18px; padding:10px 7px; border:3px solid #444; max-width:130px; margin:0 auto; }
+.phone-screen { background:#fff; border-radius:10px; overflow:hidden; }
+.phone-notif { background:#1565c0; color:#fff; padding:8px 10px; }
+.pn-app { font-size:9px; opacity:0.8; margin-bottom:2px; }
+.pn-title { font-size:11px; font-weight:700; margin-bottom:2px; }
+.pn-body { font-size:9px; opacity:0.9; }
+.pn-btns { display:flex; gap:4px; margin-top:5px; }
+.pn-btn { flex:1; padding:3px; border-radius:3px; font-size:9px; font-weight:700; text-align:center; }
+.pn-btn.ok { background:#4caf50; color:#fff; }
+.pn-btn.no { background:rgba(255,255,255,0.2); color:#fff; }
+
+.login-form { background:#fff; border-radius:8px; border:1px solid #ddd; padding:12px; font-size:11px; }
+.lf-title { font-size:12px; font-weight:700; text-align:center; margin-bottom:10px; color:#333; }
+.lf-field { position:relative; margin-bottom:8px; }
+.lf-input { width:100%; border:1px solid #ddd; border-radius:4px; padding:6px 28px 6px 8px; font-size:11px; color:#555; background:#f9f9f9; }
+.lf-input.filled { background:#e8f5e9; border-color:#4caf50; color:#1b5e20; font-weight:700; }
+.kp-field-icon { position:absolute; right:5px; top:50%; transform:translateY(-50%); width:18px; height:18px; border-radius:50%; background:#ffc107; display:flex; align-items:center; justify-content:center; font-size:10px; }
+.lf-btn { width:100%; background:#1565c0; color:#fff; border-radius:4px; padding:6px; font-size:11px; font-weight:700; text-align:center; margin-top:4px; border:2px solid #ffd700; }
+
+.save-notif-area { position:relative; background:#f8f9ff; border-radius:8px; padding:10px; border:1px solid #ddd; min-height:80px; }
+.save-notif-badge { position:absolute; top:6px; right:6px; background:#1565c0; color:#fff; border-radius:8px; padding:6px 10px; font-size:10px; }
+.snb-title { font-weight:700; margin-bottom:3px; }
+.snb-btns { display:flex; gap:4px; margin-top:4px; }
+.snb-btn { padding:2px 8px; border-radius:3px; font-size:10px; font-weight:700; }
+.snb-btn.save { background:#4caf50; color:#fff; }
+.snb-btn.no { background:rgba(255,255,255,0.2); color:#fff; border:1px solid rgba(255,255,255,0.4); }
+.fake-page { opacity:0.35; font-size:11px; padding-top:40px; text-align:center; color:#888; }
+
+@media print {
+  body { background:#fff; }
+  .cover, .slide { box-shadow:none; margin:0; border-radius:0; }
+  .cover { min-height:unset !important; padding:32px 48px !important; break-inside:avoid; page-break-inside:avoid; }
+  .slide { break-before:page; page-break-before:always; break-inside:avoid; page-break-inside:avoid; margin-bottom:0 !important; }
+  .slide-head, .step-item, .flow-arrow-row, .fa-box, .two-col, .important-box,
+  .warn-box, .info-box, .success-box, .kp, .vault-screen, .setting-modal,
+  .phone, .login-form, .save-notif-area, .slide-body > * { break-inside:avoid; page-break-inside:avoid; }
+}
+</style>
+</head>
+<body>
+
+<!-- Cover -->
+<div class="cover">
+  <div class="cover-left"><div class="cover-icon">🔐</div></div>
+  <div class="cover-right">
+    <div class="cover-tag">For All Employees</div>
+    <h1>Keeper Security<br>Setup & Migration Guide</h1>
+    <div class="cover-sub">Issued by: Corporate IT Team　｜　For: All Employees</div>
+    <div class="cover-desc">This is the official setup guide for <strong>Keeper</strong>, our company's designated password manager.<br>Starting today, all passwords must be managed through Keeper.</div>
+    <div class="time-bar">
+      <div class="tb-title">⏱ Estimated Time (Total: approx. 25–35 min)</div>
+      <div class="time-steps">
+        <div class="ts"><div class="ts-step">Step 1</div><div class="ts-min">5 min</div><div class="ts-label">Login</div></div>
+        <div class="ts"><div class="ts-step">1-B</div><div class="ts-min">1 min</div><div class="ts-label">Open Vault</div></div>
+        <div class="ts"><div class="ts-step">Step 2</div><div class="ts-min">10 min</div><div class="ts-label">Import</div></div>
+        <div class="ts"><div class="ts-step">Step 3</div><div class="ts-min">5 min</div><div class="ts-label">Delete Old</div></div>
+        <div class="ts"><div class="ts-step">Step 4</div><div class="ts-min">3 min</div><div class="ts-label">Chrome Setup</div></div>
+        <div class="ts"><div class="ts-step">Step 5–6</div><div class="ts-min">1 min</div><div class="ts-label">Confirm</div></div>
+      </div>
+      <div class="time-total">✅ This is a one-time setup. After that, logins happen automatically every day!</div>
+    </div>
+  </div>
+</div>
+
+<!-- Introduction -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">📋</div><h2>Introduction: How Keeper Works & New Password Rules</h2></div>
+  <div class="slide-body">
+    <p style="font-size:13px;font-weight:700;color:#0d1b4b;margin-bottom:10px;">📌 With Keeper, this is how you'll sign in to everything</p>
+    <div style="display:flex;align-items:center;gap:0;margin-bottom:24px;">
+      <div style="flex:1;background:linear-gradient(135deg,#fff3e0,#ffe0b2);border:2px solid #ff9800;border-radius:12px;padding:14px;text-align:center;">
+        <div style="font-size:28px;margin-bottom:6px;">🔑</div>
+        <div style="font-size:13px;font-weight:800;color:#e65100;margin-bottom:4px;">① Authenticate with Google</div>
+        <div style="font-size:11px;color:#555;">Passkey (fingerprint / face / PIN)<br>or Google password</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;padding:0 8px;flex-shrink:0;">
+        <div style="font-size:24px;color:#1565c0;font-weight:700;">→</div>
+        <div style="font-size:9px;color:#888;">opens automatically</div>
+      </div>
+      <div style="flex:1;background:linear-gradient(135deg,#e8f0ff,#d0e0ff);border:2px solid #1565c0;border-radius:12px;padding:14px;text-align:center;">
+        <div style="font-size:28px;margin-bottom:6px;">🛡️</div>
+        <div style="font-size:13px;font-weight:800;color:#0d47a1;margin-bottom:4px;">② Keeper Vault opens</div>
+        <div style="font-size:11px;color:#555;">Your encrypted<br>password vault</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;padding:0 8px;flex-shrink:0;">
+        <div style="font-size:24px;color:#1565c0;font-weight:700;">→</div>
+        <div style="font-size:9px;color:#888;">auto-fills</div>
+      </div>
+      <div style="flex:1;background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border:2px solid #2e7d32;border-radius:12px;padding:14px;text-align:center;">
+        <div style="font-size:28px;margin-bottom:6px;">⚡</div>
+        <div style="font-size:13px;font-weight:800;color:#1b5e20;margin-bottom:4px;">③ Auto-login to work systems</div>
+        <div style="font-size:11px;color:#555;">ID and password<br>filled in automatically</div>
+      </div>
+    </div>
+
+    <p style="font-size:13px;font-weight:700;color:#0d1b4b;margin-bottom:10px;">📌 Keeper has two screens — learn the difference</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+      <div style="background:linear-gradient(135deg,#e8f0ff,#d0e0ff);border:2px solid #1565c0;border-radius:12px;padding:18px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <div style="width:32px;height:32px;background:#ffc107;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;">🔐</div>
+          <div style="font-size:14px;font-weight:800;color:#0d47a1;">Keeper Icon Popup</div>
+        </div>
+        <div style="font-size:12px;color:#333;line-height:1.7;">The small menu that appears when you click the Keeper icon in Chrome. Use this for <strong>daily auto-fill and login</strong>.</div>
+        <div style="margin-top:10px;background:#fff;border-radius:6px;padding:6px 10px;font-size:11px;color:#0d47a1;border:1px solid #90b0f0;">🖱️ Use when: logging in to work systems</div>
+      </div>
+      <div style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border:2px solid #2e7d32;border-radius:12px;padding:18px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <div style="width:32px;height:32px;background:#2e7d32;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;">🗄️</div>
+          <div style="font-size:14px;font-weight:800;color:#1b5e20;">Web Vault</div>
+        </div>
+        <div style="font-size:12px;color:#333;line-height:1.7;">The full-screen password manager in your browser. Use this for <strong>importing, settings, and viewing your password list</strong>.</div>
+        <div style="margin-top:10px;background:#fff;border-radius:6px;padding:6px 10px;font-size:11px;color:#1b5e20;border:1px solid #90c090;">🖱️ Use when: initial setup and import</div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div style="display:flex;gap:14px;align-items:flex-start;">
+        <div style="background:#0d1b4b;color:#fff;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;flex-shrink:0;margin-top:2px;">1</div>
+        <div><div style="font-size:14px;font-weight:800;color:#0d1b4b;margin-bottom:3px;">Sign in to Keeper using your Google account (SSO)</div><div style="font-size:13px;color:#444;line-height:1.6;">No separate Keeper password needed. Sign in with your <strong>passkey (fingerprint / face / PIN)</strong> or Google password and Keeper opens automatically.</div></div>
+      </div>
+      <div style="display:flex;gap:14px;align-items:flex-start;">
+        <div style="background:#0d1b4b;color:#fff;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;flex-shrink:0;margin-top:2px;">2</div>
+        <div><div style="font-size:14px;font-weight:800;color:#0d1b4b;margin-bottom:3px;">No more memorizing passwords for work systems</div><div style="font-size:13px;color:#444;line-height:1.6;">Once saved in Keeper, your ID and password will be auto-filled on each login screen. No more spreadsheets or sticky notes.</div></div>
+      </div>
+      <div class="warn-box">⚠️ <strong>[PROHIBITED]</strong> Storing passwords on sticky notes, phone memos, or Excel files is strictly forbidden to prevent information leaks.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 1 -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">1</div><h2>Initial Setup & Device Approval (SSO Login)</h2><div class="tag2">~5 min</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;font-weight:700;color:#0d1b4b;margin-bottom:8px;">📌 First: locate the Keeper icon in your Chrome toolbar</p>
+    <div class="chrome-mock" style="margin-bottom:20px;">
+      <div class="chrome-toolbar">
+        <span class="c-btn">←</span><span class="c-btn">→</span><span class="c-btn">↻</span>
+        <div class="chrome-addr">https://www.google.com</div>
+        <div style="width:26px;height:26px;border-radius:50%;background:#ffc107;display:flex;align-items:center;justify-content:center;font-size:14px;position:relative;">🔐<div style="position:absolute;bottom:0;right:0;width:9px;height:9px;border-radius:50%;background:#4caf50;border:1px solid #fff;"></div></div>
+        <span class="c-more">⋮</span>
+      </div>
+      <div style="padding:5px 10px;background:#fff;"><div style="font-size:10px;color:#4caf50;font-weight:700;text-align:right;">↑ Keeper icon (yellow circle)　Green dot = logged in　Grey dot = not logged in</div></div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="step-item"><div class="si-num">1</div><div class="si-text">Click the <strong>Keeper icon (yellow circle)</strong> in the top-right of Chrome.</div></div>
+      <div class="step-item"><div class="si-num">2</div><div class="si-text">Click <strong>"Enterprise SSO Login"</strong>, enter the company domain <strong>adventure-inc.co.jp</strong>, and click <strong>"Connect"</strong>.</div></div>
+      <div class="step-item"><div class="si-num">3</div><div class="si-text">You will be redirected to Google's authentication screen. Select your company account and authenticate.<br><span style="font-size:12px;color:#6a1b9a;">· With passkey → authenticate via fingerprint / face / PIN</span><br><span style="font-size:12px;color:#0d47a1;">· Without passkey → enter your Google password</span></div></div>
+
+      <div class="important-box">
+        <div class="i-title">[Important] If a device approval screen appears (first time only)</div>
+        <div style="display:grid;grid-template-columns:1fr 130px;gap:12px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div style="background:#e8f5e9;border:2px solid #4caf50;border-radius:8px;padding:10px;">
+              <div style="font-weight:800;color:#1b5e20;font-size:12px;margin-bottom:4px;">✅ A: Keeper Push (Recommended)</div>
+              <div style="font-size:11px;color:#444;">A notification is sent to an already-approved device. Tap "Approve" to complete.</div>
+            </div>
+            <div style="background:#fff3e0;border:2px solid #ff9800;border-radius:8px;padding:10px;">
+              <div style="font-weight:800;color:#e65100;font-size:12px;margin-bottom:4px;">🛡️ B: Admin Approval</div>
+              <div style="font-size:11px;color:#444;">If no other device available. IT will respond within <strong>30 minutes</strong>. Urgent: contact #keeper-support.</div>
+            </div>
+          </div>
+          <div>
+            <div class="phone">
+              <div class="phone-screen">
+                <div class="phone-notif">
+                  <div class="pn-app">🔐 Keeper</div>
+                  <div class="pn-title">New Device Approval</div>
+                  <div class="pn-body">Approve this device?</div>
+                  <div class="pn-btns"><div class="pn-btn ok">Approve</div><div class="pn-btn no">Deny</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="success-box">✅ When a <strong>green dot</strong> appears on the Keeper icon, you are logged in!<br><span style="font-size:12px;margin-top:4px;display:block;">👉 <strong>Next: Open the Web Vault in Step 1-B to begin the import</strong></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 1-B -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">1-B</div><h2>How to Open the Web Vault</h2><div class="tag2">~1 min</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;color:#444;margin-bottom:14px;">Importing and viewing saved passwords is done from the <strong>Web Vault</strong>.</p>
+    <div class="flow-arrow-row" style="margin-bottom:20px;">
+      <div class="fa-box" style="width:170px;">
+        <div class="step-label">① Click the Keeper icon</div>
+        <div class="kp">
+          <div class="kp-head"><div class="kp-logo"><div class="kp-logo-icon">🔐</div>KEEPER</div><div class="kp-icons"><div class="kp-icon" style="background:#ffc107;">+</div><div class="kp-icon" style="background:rgba(255,200,0,0.3);border:1px solid #ffc107;font-size:14px;font-weight:700;">⋮</div></div></div>
+          <div class="kp-body" style="font-size:10px;color:#888;">Password list...<br><span style="color:#e65100;font-weight:700;">→ Click ⋮ in the top right</span></div>
+        </div>
+      </div>
+      <div class="fa-arr">→</div>
+      <div class="fa-box" style="width:170px;">
+        <div class="step-label">② Click "Open Web Vault"</div>
+        <div class="dd">
+          <div class="dd-item">🎲 Password Generator</div>
+          <div class="dd-item">⚙️ Settings</div>
+          <div class="dd-div"></div>
+          <div class="dd-item hl">🔷 Open Web Vault ←</div>
+          <div class="dd-item red">🚪 Log Out</div>
+        </div>
+      </div>
+      <div class="fa-arr">→</div>
+      <div class="fa-box" style="flex:1;">
+        <div class="step-label">③ Web Vault opens in a new tab</div>
+        <div class="vault-screen">
+          <div class="vs-head"><div class="vs-logo">🔐 Keeper</div><div class="vs-email">j-iwaya@adventure-inc.co.jp ▾</div></div>
+          <div class="vs-body">
+            <div class="vs-side"><div class="vs-side-item active">🏠 All</div><div class="vs-side-item">⭐ Favorites</div></div>
+            <div class="vs-main"><div class="vs-empty"><div style="font-size:28px;margin-bottom:6px;">📭</div><div style="font-weight:700;color:#aaa;">No passwords yet</div><div style="font-size:10px;color:#bbb;margin-top:4px;">You will import them in Step 2</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="background:#f0fff4;border-radius:10px;padding:14px;border:2px solid #90c090;">
+      <p style="font-size:13px;font-weight:700;color:#1b5e20;margin-bottom:6px;">📌 Alternative: Open directly via URL</p>
+      <div style="font-family:monospace;font-size:13px;font-weight:700;color:#1b5e20;background:#fff;border:1px solid #90c090;border-radius:6px;padding:6px 12px;display:inline-block;">keepersecurity.com/vault</div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 2 -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">2</div><h2>Importing Your Passwords into Keeper</h2><div class="tag2">~10 min</div></div>
+  <div class="slide-body">
+    <div class="info-box" style="margin-bottom:16px;">💡 Import is done from the Web Vault. Make sure you have <strong>opened the Web Vault in Step 1-B</strong> before proceeding.</div>
+    <p style="font-size:13px;font-weight:700;color:#0d1b4b;margin-bottom:8px;">📌 How to open the Import screen</p>
+    <div class="flow-arrow-row" style="margin-bottom:16px;">
+      <div class="fa-box" style="width:148px;">
+        <div class="step-label">① Click your email in the top-right</div>
+        <div class="vault-screen"><div class="vs-head" style="flex-direction:column;align-items:flex-end;gap:3px;"><div style="width:100%;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:11px;font-weight:700;">🔐 Keeper</span><div class="vs-email" style="font-size:9px;">j-iwaya@... ▾ ←</div></div></div><div style="padding:5px 8px;font-size:10px;color:#888;">Vault screen...</div></div>
+      </div>
+      <div class="fa-arr">→</div>
+      <div class="fa-box" style="width:140px;">
+        <div class="step-label">② Click "Settings"</div>
+        <div class="dd"><div class="dd-item">👤 Account</div><div class="dd-item hl">⚙️ Settings ←</div><div class="dd-item red">🚪 Log Out</div></div>
+      </div>
+      <div class="fa-arr">→</div>
+      <div class="fa-box" style="width:148px;">
+        <div class="step-label">③ Click "Import" in the left menu</div>
+        <div class="setting-modal">
+          <div class="sm-head">Settings</div>
+          <div class="sm-body">
+            <div class="sm-side">
+              <div class="sm-side-item"><div class="sm-side-icon" style="background:#555;">⚙️</div>General</div>
+              <div class="sm-side-item active"><div class="sm-side-icon" style="background:#ff6f00;">📥</div>Import ←</div>
+            </div>
+            <div class="sm-main" style="font-size:10px;color:#888;">Settings screen...</div>
+          </div>
+        </div>
+      </div>
+      <div class="fa-arr">→</div>
+      <div class="fa-box" style="flex:1;">
+        <div class="step-label">④ "From Browser" → "Import" → "Install"</div>
+        <div style="background:#fff;border-radius:8px;border:1px solid #ddd;padding:10px;font-size:11px;">
+          <div style="font-weight:700;margin-bottom:7px;">Select import method</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #eee;margin-bottom:5px;"><div><div style="font-size:10px;font-weight:700;">From Browser</div><div style="font-size:9px;color:#888;">Chrome, Firefox...</div></div><div style="background:#1565c0;color:#fff;border-radius:3px;padding:2px 6px;font-size:9px;font-weight:700;">Import ←</div></div>
+        </div>
+        <div style="font-size:10px;color:#1b5e20;font-weight:700;margin-top:4px;background:#e8f5e9;border-radius:4px;padding:4px 6px;">✅ This is an official tool. Safe to click.</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="col-step"><div class="cs-num" style="background:#1565c0;">6</div><div class="cs-text" style="font-size:13px;">After installation, the Keeper Import Tool automatically reads your Chrome-saved passwords.</div></div>
+      <div class="col-step"><div class="cs-num" style="background:#1565c0;">7</div><div class="cs-text" style="font-size:13px;">Review the password list and click <strong>"Add to Keeper"</strong> to complete the import.</div></div>
+      <div style="background:#fff3e0;border:1px solid #ff9800;border-radius:6px;padding:8px 12px;font-size:12px;color:#7b3a00;">⚠️ On Mac, multiple Keychain access permission dialogs may appear. Enter your Mac password to allow access.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 3 -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">3</div><h2>Delete Data from Google Password Manager</h2><div class="tag2">~5 min · Required</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;margin-bottom:14px;background:#ffebee;border-radius:6px;padding:8px 14px;color:#c62828;font-weight:700;">⚠️ This step is required to prevent conflicts where both Keeper and Chrome try to auto-fill at the same time.</p>
+    <div class="flow-arrow-row" style="margin-bottom:16px;">
+      <div class="fa-box" style="width:140px;"><div class="step-label">① Click Chrome ⋮</div><div class="chrome-mock"><div class="chrome-toolbar" style="justify-content:flex-end;"><div class="c-more">⋮ ←</div></div><div style="padding:5px 10px;background:#fff;font-size:10px;color:#888;">Chrome browser</div></div></div>
+      <div class="fa-arr">→</div>
+      <div class="fa-box" style="width:155px;"><div class="step-label">② "Passwords and Autofill"</div><div class="dd"><div class="dd-item">Settings</div><div class="dd-item hl">Passwords and autofill ▶ ←</div></div></div>
+      <div class="fa-arr">→</div>
+      <div class="fa-box" style="width:155px;"><div class="step-label">③ "Google Password Manager"</div><div class="dd"><div class="dd-item hl">🔑 Google Password Manager ←</div><div class="dd-item">💳 Payment methods</div></div></div>
+      <div class="fa-arr">→</div>
+      <div class="fa-box" style="width:155px;"><div class="step-label">④ Settings ⚙️ → "Delete data"</div><div style="background:#fff;border-radius:8px;border:1px solid #ddd;overflow:hidden;font-size:10px;"><div style="background:#1565c0;color:#fff;padding:5px 8px;font-weight:700;">⚙️ Settings</div><div style="padding:5px 8px;font-size:9px;color:#c62828;">Delete all Google Password Manager data</div><div style="background:#c62828;color:#fff;margin:3px 8px 6px;border-radius:3px;padding:3px;text-align:center;font-size:9px;font-weight:700;">Delete data ←</div></div></div>
+    </div>
+    <div class="success-box">✅ Open Google Password Manager and confirm the password list is <strong>empty</strong>.</div>
+  </div>
+</div>
+
+<!-- Step 4 -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">4</div><h2>Update Chrome Settings (Prevent Conflicts)</h2><div class="tag2">~3 min</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;margin-bottom:14px;background:#fff3e0;border-radius:6px;padding:8px 14px;color:#7b3a00;font-weight:700;">[Important] This setting prevents Chrome from prompting "Save password?" after every login.</p>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="step-item"><div class="si-num">1</div><div class="si-text">Click <strong>⋮ (menu) → "Settings"</strong> in the top-right of Chrome.</div></div>
+      <div class="step-item"><div class="si-num">2</div><div class="si-text">From the left menu, click <strong>"Autofill and passwords" → "Google Password Manager"</strong>.</div></div>
+      <div class="step-item"><div class="si-num">3</div><div class="si-text">Click <strong>"Settings" (gear icon)</strong> on the left side of the screen.</div></div>
+      <div class="step-item"><div class="si-num">4</div><div class="si-text">Turn <strong>"Offer to save passwords and passkeys"</strong> to <strong style="color:#c62828;">Off (grey)</strong>.</div></div>
+      <div class="step-item"><div class="si-num">5</div><div class="si-text"><strong>Restart Chrome</strong> after completing the setting.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 5 -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">5</div><h2>Daily Usage: Auto-fill & Manual Fill</h2></div>
+  <div class="slide-body">
+    <div class="info-box" style="margin-bottom:14px;">💡 <strong>Quick guide:</strong> Daily auto-fill → <strong>Keeper icon (popup)</strong>　／　View/edit passwords → <strong>Web Vault</strong> (⋮ → Open Web Vault)</div>
+    <div class="two-col">
+      <div style="background:linear-gradient(135deg,#e3f2fd,#bbdefb);border:2px solid #64b5f6;border-radius:12px;padding:20px;">
+        <h3 style="font-size:14px;font-weight:800;color:#0d47a1;margin-bottom:12px;">🤖 Default: Auto-fill</h3>
+        <p style="font-size:12px;color:#333;margin-bottom:10px;">Just open the login page and your ID and password are filled in automatically.</p>
+        <div class="login-form">
+          <div class="lf-title">🔒 Login</div>
+          <div class="lf-field"><input class="lf-input filled" readonly value="user@adventure-inc.co.jp"></div>
+          <div class="lf-field"><input class="lf-input filled" type="password" readonly value="••••••••••"><div class="kp-field-icon">🔐</div></div>
+          <div style="font-size:10px;color:#1b5e20;margin-bottom:4px;">↑ Keeper auto-filled this</div>
+          <div class="lf-btn">Login ← Just click!</div>
+        </div>
+      </div>
+      <div style="background:linear-gradient(135deg,#f3e5f5,#e1bee7);border:2px solid #ba68c8;border-radius:12px;padding:20px;">
+        <h3 style="font-size:14px;font-weight:800;color:#4a148c;margin-bottom:8px;">👆 If auto-fill doesn't work</h3>
+        <div class="step-item"><div class="si-num" style="background:#4a148c;">1</div><div class="si-text" style="font-size:12px;">Open the login page.</div></div>
+        <div class="step-item"><div class="si-num" style="background:#4a148c;">2</div><div class="si-text" style="font-size:12px;">Click the <strong>Keeper icon</strong> in Chrome.</div></div>
+        <div class="step-item"><div class="si-num" style="background:#4a148c;">3</div><div class="si-text" style="font-size:12px;">Click the <strong>"→ Fill" button</strong> next to the correct record.</div></div>
+        <div style="margin-top:8px;" class="kp">
+          <div class="kp-head"><div class="kp-logo"><div class="kp-logo-icon">🔐</div>KEEPER</div></div>
+          <div class="kp-body"><div class="kp-record"><div class="kp-record-info"><div class="kp-record-icon">🔑</div><div><div style="font-size:11px;font-weight:700;color:#0d47a1;">Google Workspace</div><div style="font-size:9px;color:#888;">j-iwaya@adventure-inc.co.jp</div></div></div><div class="kp-fill-btn">→ Fill</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 6 -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">6</div><h2>Daily Usage: Saving New Passwords</h2></div>
+  <div class="slide-body">
+    <p style="font-size:13px;color:#444;margin-bottom:14px;">When you log in to a site not yet in Keeper, KeeperFill detects it and offers to save the password.</p>
+    <div style="display:flex;align-items:stretch;gap:10px;">
+      <div style="flex:1;background:#f0f4ff;border-radius:10px;padding:14px;text-align:center;border:2px solid #90b0f0;"><div style="font-size:28px;margin-bottom:6px;">🖥️</div><p style="font-size:12px;color:#333;line-height:1.5;"><strong>①</strong> Manually type your ID and password on the login page and log in</p></div>
+      <div style="align-self:center;font-size:22px;color:#1a6090;font-weight:700;">→</div>
+      <div style="flex:1;background:#f0f4ff;border-radius:10px;padding:14px;border:2px solid #90b0f0;">
+        <div class="save-notif-area">
+          <div class="save-notif-badge"><div class="snb-title">🔐 KEEPER<br>Save this password?</div><div class="snb-btns"><div class="snb-btn save">Save</div><div class="snb-btn no">No</div></div></div>
+          <div class="fake-page">Post-login screen</div>
+        </div>
+        <p style="font-size:12px;color:#333;margin-top:6px;"><strong>②</strong> KeeperFill detects the login and shows a popup in the top-right</p>
+      </div>
+      <div style="align-self:center;font-size:22px;color:#1a6090;font-weight:700;">→</div>
+      <div style="flex:1;background:#f0f4ff;border-radius:10px;padding:14px;text-align:center;border:2px solid #90b0f0;"><div style="font-size:28px;margin-bottom:6px;">✅</div><p style="font-size:12px;color:#333;"><strong>③ Click "Save"</strong>. Auto-fill will work from next time!</p></div>
+    </div>
+    <div class="info-box" style="margin-top:12px;">💡 If no popup appears, click the Keeper icon → <strong>"Add Record (＋)"</strong> to save manually.</div>
+  </div>
+</div>
+
+<!-- Help -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">7</div><h2>Need Help?</h2></div>
+  <div class="slide-body">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+      <div style="background:linear-gradient(135deg,#e8f0ff,#d0e0ff);border:2px solid #90b0f0;border-radius:12px;padding:20px;text-align:center;">
+        <div style="font-size:52px;margin-bottom:10px;">👩‍💻</div>
+        <h3 style="font-size:15px;font-weight:800;color:#0d1b4b;margin-bottom:8px;">Contact Corporate IT</h3>
+        <p style="font-size:12px;color:#444;line-height:1.6;">Reach out in the Slack channel <strong>#keeper-support</strong>.<br>Device approval requests are handled within <strong>30 minutes</strong>.</p>
+      </div>
+      <div style="background:linear-gradient(135deg,#fff8e1,#ffecb3);border:2px solid #ffc107;border-radius:12px;padding:20px;text-align:center;">
+        <div style="font-size:52px;margin-bottom:10px;">📖</div>
+        <h3 style="font-size:15px;font-weight:800;color:#0d1b4b;margin-bottom:8px;">Keeper End User Guide (Official)</h3>
+        <div style="background:#0d1b4b;color:#fff;border-radius:8px;padding:10px 14px;font-size:12px;font-weight:700;margin-bottom:10px;text-align:left;">🔗 https://docs.keeper.io/en/user-guides</div>
+        <div style="font-size:11px;color:#555;text-align:left;line-height:1.8;">
+          📌 How to use auto-fill<br>
+          📌 Import instructions
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
