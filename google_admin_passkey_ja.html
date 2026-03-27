@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Google管理コンソール パスキー設定手順書</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Hiragino Sans','Yu Gothic',Arial,sans-serif; background:#f0f4f8; color:#1a1a2e; }
+.cover {
+  background: linear-gradient(135deg,#1a237e 0%,#283593 50%,#1565c0 100%);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:48px 64px; gap:40px; margin-bottom:32px; position:relative; overflow:hidden;
+}
+.cover::before { content:''; position:absolute; inset:0;
+  background: radial-gradient(circle at 20% 50%, rgba(100,180,255,0.15) 0%, transparent 60%),
+              radial-gradient(circle at 80% 30%, rgba(50,100,255,0.1) 0%, transparent 50%); }
+.cover-left { flex:1; position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:16px; }
+.cover-icon { font-size:90px; filter:drop-shadow(0 0 24px rgba(100,180,255,0.6)); }
+.mbadge { background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.4); border-radius:16px; padding:5px 14px; font-size:12px; color:#fff; font-weight:700; text-align:center; }
+.cover-right { flex:1.4; position:relative; z-index:1; color:#fff; }
+.cover-tag { background:rgba(255,200,0,0.9); color:#1a1a2e; font-size:12px; font-weight:700; padding:4px 14px; border-radius:4px; display:inline-block; margin-bottom:14px; }
+.cover-right h1 { font-size:30px; font-weight:900; line-height:1.3; margin-bottom:14px; }
+.cover-right .cover-sub { font-size:12px; opacity:0.75; margin-bottom:16px; }
+.cover-desc { font-size:13px; line-height:1.8; background:rgba(255,255,255,0.1); border-radius:8px; padding:14px; border-left:3px solid #64b5f6; margin-bottom:14px; }
+.cover-desc strong { color:#ffd700; }
+.time-bar { background:rgba(255,255,255,0.1); border-radius:8px; padding:10px 14px; border:1px solid rgba(255,255,255,0.2); }
+.tb-title { font-size:11px; font-weight:700; color:#ffd700; margin-bottom:6px; }
+.time-steps { display:flex; }
+.ts { flex:1; text-align:center; padding:5px 2px; border-right:1px solid rgba(255,255,255,0.2); }
+.ts:last-child { border-right:none; }
+.ts .ts-step { font-size:9px; opacity:0.7; }
+.ts .ts-min { font-size:13px; font-weight:900; color:#ffd700; }
+.ts .ts-label { font-size:9px; opacity:0.8; }
+.slide { background:#fff; margin:0 auto 28px; max-width:1000px; border-radius:16px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,0.10); }
+.slide-head { color:#fff; padding:18px 36px; display:flex; align-items:center; gap:14px; }
+.slide-head.blue   { background:linear-gradient(90deg,#1a237e,#1565c0); }
+.slide-head.green  { background:linear-gradient(90deg,#1b5e20,#2e7d32); }
+.slide-head.orange { background:linear-gradient(90deg,#e65100,#f57c00); }
+.slide-head .snum { background:rgba(255,255,255,0.2); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:900; flex-shrink:0; }
+.slide-head h2 { font-size:21px; font-weight:800; }
+.slide-head .tag2 { margin-left:auto; background:rgba(255,200,0,0.9); color:#1a1a2e; font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; white-space:nowrap; }
+.slide-body { padding:30px 36px; }
+.warn-box    { background:#fff3e0; border:2px solid #ff9800; border-radius:8px; padding:11px 14px; font-size:13px; color:#7b3a00; margin-top:8px; }
+.info-box    { background:#e3f2fd; border:2px solid #1565c0; border-radius:8px; padding:11px 14px; font-size:13px; color:#0d47a1; margin-top:8px; }
+.success-box { background:#e8f5e9; border:2px solid #4caf50; border-radius:8px; padding:11px 14px; font-size:13px; color:#1b5e20; margin-top:8px; }
+.danger-box  { background:#ffebee; border:2px solid #c62828; border-radius:8px; padding:11px 14px; font-size:13px; color:#b71c1c; margin-top:8px; }
+.tip-box     { background:#f3e5f5; border:2px solid #9c27b0; border-radius:8px; padding:11px 14px; font-size:13px; color:#4a148c; margin-top:8px; }
+.step-item { display:flex; gap:12px; align-items:flex-start; margin-bottom:10px; }
+.si-num { color:#fff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:900; flex-shrink:0; margin-top:1px; }
+.si-num.blue  { background:linear-gradient(135deg,#1565c0,#1a237e); }
+.si-num.green { background:linear-gradient(135deg,#2e7d32,#1b5e20); }
+.si-text { font-size:13px; line-height:1.7; color:#333; }
+.si-text strong { color:#1a237e; background:#e8f0ff; padding:1px 5px; border-radius:3px; }
+.si-text strong.g { color:#1b5e20; background:#e8f5e9; }
+.flow-row { display:flex; align-items:flex-start; gap:6px; flex-wrap:nowrap; overflow-x:auto; }
+.fl-box { flex:0 0 auto; }
+.fl-arr { align-self:center; font-size:18px; color:#1565c0; font-weight:700; flex-shrink:0; }
+.step-label { font-size:10px; font-weight:700; color:#e65100; margin-bottom:4px; text-align:center; }
+.admin-mock { background:#fff; border-radius:10px; overflow:hidden; border:1px solid #ddd; font-size:11px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+.admin-header { background:#1a73e8; color:#fff; padding:8px 14px; display:flex; align-items:center; gap:10px; }
+.admin-logo { font-size:13px; font-weight:700; }
+.admin-body { display:flex; }
+.admin-side { width:160px; background:#f8f9fa; border-right:1px solid #eee; padding:6px; }
+.admin-side-item { padding:5px 8px; border-radius:4px; font-size:11px; color:#555; margin-bottom:2px; display:flex; align-items:center; gap:5px; }
+.admin-side-item.active { background:#e8f0fe; color:#1a73e8; font-weight:700; }
+.admin-main { flex:1; padding:12px; }
+.admin-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #f5f5f5; font-size:11px; }
+.admin-row:last-child { border:none; }
+.admin-badge { padding:3px 10px; border-radius:12px; font-size:10px; font-weight:700; }
+.admin-badge.on  { background:#e6f4ea; color:#137333; }
+.admin-badge.off { background:#fce8e6; color:#c5221f; }
+.admin-badge.inherit { background:#e8f0fe; color:#1967d2; }
+.admin-breadcrumb { font-size:10px; color:#888; margin-bottom:8px; }
+.checkbox-wrap { display:flex; align-items:flex-start; gap:10px; padding:12px 14px; background:#f8f9fa; border-radius:8px; border:1px solid #eee; }
+.cb-box { width:16px; height:16px; border:2px solid #1a73e8; border-radius:3px; background:#1a73e8; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; }
+.cb-box.unchecked { background:#fff; border-color:#999; }
+.cb-check { color:#fff; font-size:11px; font-weight:900; }
+.cb-label { font-size:12px; color:#333; line-height:1.6; }
+.banner-warn { background:#fef9e7; border:1px solid #f5a623; border-radius:6px; padding:8px 12px; font-size:11px; color:#7b4e00; display:flex; align-items:flex-start; gap:8px; margin-bottom:10px; }
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.trouble-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.tr-card { border-radius:8px; padding:14px; }
+.tr-card.prob { background:#fff3e0; border-left:3px solid #e65100; }
+.tr-card.sol  { background:#e8f5e9; border-left:3px solid #2e7d32; }
+.tr-card h4 { font-size:12px; font-weight:700; margin-bottom:6px; }
+.tr-card.prob h4 { color:#bf360c; }
+.tr-card.sol  h4 { color:#1b5e20; }
+.tr-card p { font-size:12px; color:#444; line-height:1.6; }
+@media print {
+  body { background:#fff; }
+  .cover, .slide { box-shadow:none; margin:0; border-radius:0; }
+  .cover { break-inside:avoid; }
+  .slide { break-before:page; break-inside:avoid; margin-bottom:0 !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- 表紙 -->
+<div class="cover">
+  <div class="cover-left">
+    <div class="cover-icon">⚙️</div>
+    <div class="mbadge">🔑 パスキー パスワードスキップ有効化</div>
+    <div class="mbadge">👤 Google管理コンソール操作</div>
+  </div>
+  <div class="cover-right">
+    <div class="cover-tag">IT管理者向け手順書</div>
+    <h1>Google管理コンソール<br>パスキー設定手順書</h1>
+    <div class="cover-sub">発行：IT事業部 コーポレートIT課　｜　2026年3月26日</div>
+    <div class="cover-desc">
+      本手順書では、Google管理コンソールで<strong>パスキーのパスワードスキップ</strong>を有効化する方法を説明します。<br>
+      この設定を行うことで、社員がパスキー（指紋・顔認証・PIN）を使って<strong>パスワードなしでGoogleにサインイン</strong>できるようになります。
+    </div>
+    <div class="time-bar">
+      <div class="tb-title">⏱ 作業の目安時間（合計：約10〜15分）</div>
+      <div class="time-steps">
+        <div class="ts"><div class="ts-step">事前確認</div><div class="ts-min">2分</div><div class="ts-label">権限確認</div></div>
+        <div class="ts"><div class="ts-step">Step 1</div><div class="ts-min">3分</div><div class="ts-label">コンソールへ</div></div>
+        <div class="ts"><div class="ts-step">Step 2</div><div class="ts-min">3分</div><div class="ts-label">設定変更</div></div>
+        <div class="ts"><div class="ts-step">Step 3</div><div class="ts-min">3分</div><div class="ts-label">動作確認</div></div>
+        <div class="ts"><div class="ts-step">Step 4</div><div class="ts-min">2分</div><div class="ts-label">OU別設定</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 事前確認 -->
+<div class="slide">
+  <div class="slide-head blue"><div class="snum">📋</div><h2>事前確認：設定前に確認すること</h2></div>
+  <div class="slide-body">
+    <p style="font-size:13px;font-weight:700;color:#1a237e;margin-bottom:12px;">📌 以下の条件をすべて満たしていることを確認してください</p>
+    <div class="two-col" style="margin-bottom:20px;">
+      <div style="background:#e8f5e9;border:2px solid #4caf50;border-radius:10px;padding:16px;">
+        <div style="font-size:14px;font-weight:800;color:#1b5e20;margin-bottom:10px;">✅ 必要な権限・条件</div>
+        <div class="step-item" style="margin-bottom:8px;"><div style="width:22px;height:22px;border-radius:50%;background:#4caf50;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">1</div><div style="font-size:13px;color:#333;margin-left:8px;"><strong class="g">Google Workspace スーパー管理者</strong>権限を持つアカウントでログインしていること</div></div>
+        <div class="step-item" style="margin-bottom:8px;"><div style="width:22px;height:22px;border-radius:50%;background:#4caf50;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">2</div><div style="font-size:13px;color:#333;margin-left:8px;"><strong class="g">Google Workspace Business Starter以上</strong>のプランであること</div></div>
+        <div class="step-item"><div style="width:22px;height:22px;border-radius:50%;background:#4caf50;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">3</div><div style="font-size:13px;color:#333;margin-left:8px;">社員側で<strong class="g">パスキーが設定済み</strong>であること（Windows Hello / Mac パスキー設定手順書参照）</div></div>
+      </div>
+      <div>
+        <div class="danger-box">
+          ⚠️ <strong>【重要】設定変更の影響範囲を理解してください</strong><br><br>
+          この設定を有効にすると、対象OUの<strong>全ユーザーがパスワードスキップでサインイン可能</strong>になります。<br><br>
+          パスキーを設定していないユーザーは引き続きパスワードでサインインできます。
+        </div>
+        <div class="warn-box" style="margin-top:10px;">
+          ⚠️ <strong>サードパーティSSO（Keeper）についての注意</strong><br><br>
+          管理コンソール上に以下の警告が表示されます：<br>
+          <em>「This setting doesn't apply when users are authenticated by a third-party identity provider」</em><br><br>
+          KeeperはGoogle SSOで認証しているため、<strong>パイロットテスト（3/30）でKeeperとの連携動作を必ず確認</strong>してください。
+        </div>
+        <div class="info-box" style="margin-top:10px;">
+          💡 <strong>まず特定のOUでテスト</strong>してから全社展開することを推奨します。
+        </div>
+      </div>
+    </div>
+
+    <p style="font-size:13px;font-weight:700;color:#1a237e;margin-bottom:10px;">📌 この設定で変わること・変わらないこと</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div style="background:#e8f5e9;border-radius:8px;padding:14px;border:2px solid #4caf50;">
+        <div style="font-size:13px;font-weight:700;color:#1b5e20;margin-bottom:8px;">✅ 有効化後にできること</div>
+        <div style="font-size:12px;color:#333;line-height:1.9;">
+          ・パスキーでGoogleにパスワードなしでサインイン<br>
+          ・KeeperのSSO連携でパスワードなしでKeeper起動（パイロットで要確認）<br>
+          ・2段階認証の代わりにパスキーで認証
+        </div>
+      </div>
+      <div style="background:#fff3e0;border-radius:8px;padding:14px;border:2px solid #ff9800;">
+        <div style="font-size:13px;font-weight:700;color:#e65100;margin-bottom:8px;">⚠️ 変わらないこと</div>
+        <div style="font-size:12px;color:#333;line-height:1.9;">
+          ・パスキー未設定のユーザーは従来通りパスワードでサインイン<br>
+          ・既存のパスワードは削除されない<br>
+          ・管理者が個別に無効化することも可能
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 1 -->
+<div class="slide">
+  <div class="slide-head blue"><div class="snum">1</div><h2>Google管理コンソールへアクセス</h2><div class="tag2">約3分</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;font-weight:700;color:#1a237e;margin-bottom:10px;">📌 管理コンソールへのアクセス方法</p>
+    <div class="flow-row" style="margin-bottom:20px;">
+      <div class="fl-box" style="width:200px;">
+        <div class="step-label">① ブラウザでURLを入力</div>
+        <div style="background:#f5f5f5;border-radius:10px;overflow:hidden;border:1px solid #ccc;font-size:11px;">
+          <div style="background:linear-gradient(180deg,#e8e8e8,#d8d8d8);padding:6px 10px;display:flex;align-items:center;gap:6px;border-bottom:1px solid #bbb;">
+            <div style="flex:1;background:#fff;border-radius:16px;padding:3px 10px;font-size:10px;color:#1a73e8;font-weight:700;text-align:center;">admin.google.com</div>
+          </div>
+          <div style="background:#fff;padding:6px 10px;font-size:10px;color:#888;">← URLバーに入力してEnter</div>
+        </div>
+      </div>
+      <div class="fl-arr">→</div>
+      <div class="fl-box" style="width:200px;">
+        <div class="step-label">② スーパー管理者でログイン</div>
+        <div style="background:#fff;border-radius:10px;border:1px solid #ddd;padding:14px;font-size:11px;text-align:center;">
+          <div style="font-size:22px;margin-bottom:6px;">G</div>
+          <div style="font-weight:700;margin-bottom:8px;">Googleにログイン</div>
+          <div style="background:#e8f0fe;border:1px solid #90b0f0;border-radius:6px;padding:6px 8px;display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+            <div style="width:20px;height:20px;border-radius:50%;background:#1a73e8;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:700;">A</div>
+            <div style="font-size:10px;text-align:left;"><div style="font-weight:700;">管理者アカウント</div><div style="color:#888;">admin@adventure-inc.co.jp</div></div>
+          </div>
+          <div style="background:#1a73e8;color:#fff;border-radius:5px;padding:5px;font-size:10px;font-weight:700;">次へ</div>
+        </div>
+      </div>
+      <div class="fl-arr">→</div>
+      <div class="fl-box" style="flex:1;">
+        <div class="step-label">③ セキュリティ → 認証 → Passwordless へ移動</div>
+        <div class="admin-mock">
+          <div class="admin-header">
+            <div style="font-size:16px;">G</div>
+            <div class="admin-logo">Google 管理コンソール</div>
+            <div style="margin-left:auto;font-size:10px;background:rgba(255,255,255,0.2);padding:2px 8px;border-radius:10px;">admin@adventure-inc.co.jp</div>
+          </div>
+          <div class="admin-body">
+            <div class="admin-side">
+              <div class="admin-side-item">🔒 セキュリティ</div>
+              <div class="admin-side-item" style="padding-left:16px;">認証</div>
+              <div class="admin-side-item active" style="padding-left:24px;">Passwordless ←</div>
+            </div>
+            <div class="admin-main" style="font-size:10px;color:#888;padding:10px;">
+              <div style="font-weight:700;color:#333;margin-bottom:4px;">Passwordless</div>
+              <div>Skip passwords · Passkeys restriction</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="step-item"><div class="si-num blue">1</div><div class="si-text">ブラウザのアドレスバーに <strong>admin.google.com</strong> と入力してEnterを押します。</div></div>
+      <div class="step-item"><div class="si-num blue">2</div><div class="si-text"><strong>スーパー管理者のGoogleアカウント</strong>でログインします。</div></div>
+      <div class="step-item"><div class="si-num blue">3</div><div class="si-text">左メニューから<strong>「セキュリティ」→「認証」→「Passwordless」</strong>をクリックします。</div></div>
+      <div class="info-box">
+        💡 「Passwordless」が見当たらない場合は、上部の検索バーに<strong>「passwordless」</strong>または<strong>「パスキー」</strong>と入力すると直接移動できます。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 2 -->
+<div class="slide">
+  <div class="slide-head blue"><div class="snum">2</div><h2>パスワードスキップを有効化（最上位OU）</h2><div class="tag2">約3分</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;font-weight:700;color:#1a237e;margin-bottom:12px;">📌 Passwordless画面で表示される内容</p>
+
+    <div style="background:#f8f9fa;border-radius:10px;border:1px solid #ddd;padding:16px;margin-bottom:20px;">
+      <div style="font-size:11px;color:#888;margin-bottom:8px;">Security &gt; Passwordless — adventure-inc.co.jpのユーザーに対する設定を表示中</div>
+      <div style="font-size:13px;font-weight:700;color:#333;margin-bottom:10px;border-bottom:1px solid #eee;padding-bottom:6px;">Passwordless</div>
+      <div style="display:flex;gap:20px;">
+        <div style="width:160px;font-size:12px;"><strong>Skip passwords</strong><div style="font-size:10px;color:#888;margin-top:2px;">Inherited from OU: 'adventure-inc.co.jp'</div></div>
+        <div style="flex:1;">
+          <div class="banner-warn">
+            <span style="font-size:14px;">⚠️</span>
+            <span>This setting doesn't apply when users are authenticated by a third-party identity provider</span>
+          </div>
+          <div class="checkbox-wrap">
+            <div class="cb-box"><span class="cb-check">✓</span></div>
+            <div class="cb-label"><strong>Allow users to skip their password and authenticate with a passkey</strong><br>
+            <span style="font-size:10px;color:#666;">Users won't have the option to add a security key...</span></div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:12px;">
+            <div style="font-size:12px;color:#555;font-weight:700;">CANCEL</div>
+            <div style="font-size:12px;color:#1a73e8;font-weight:700;">SAVE ← 最上位OUの場合</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="step-item"><div class="si-num blue">1</div><div class="si-text"><strong>Passwordless</strong>画面で<strong>「Skip passwords」</strong>セクションを確認します。</div></div>
+      <div class="step-item"><div class="si-num blue">2</div><div class="si-text"><strong>「Allow users to skip their password and authenticate with a passkey」</strong>のチェックボックスを☑にします。</div></div>
+      <div class="step-item"><div class="si-num blue">3</div><div class="si-text">右下の<strong>「SAVE」</strong>をクリックして保存します。（※最上位OUの場合）</div></div>
+      <div class="success-box">✅ チェックボックスが☑になり「設定が保存されました」と表示されれば完了です。</div>
+      <div class="warn-box">
+        ⚠️ <strong>画面上の警告について：</strong><br>
+        「This setting doesn't apply when users are authenticated by a third-party identity provider」<br><br>
+        KeeperはGoogle SSOで認証しているため、<strong>パイロットテスト（3/30）でKeeperがパスワードなしで起動するか必ず確認</strong>してください。動作しない場合はKeeper側の設定変更が必要になる可能性があります。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 3 -->
+<div class="slide">
+  <div class="slide-head blue"><div class="snum">3</div><h2>組織ユニット（OU）別に設定する（推奨）</h2><div class="tag2">任意・推奨</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;color:#444;margin-bottom:14px;">全社一斉ではなく、<strong>特定の部署・グループだけに先行展開</strong>する場合の手順です。</p>
+
+    <div class="flow-row" style="margin-bottom:16px;">
+      <div class="fl-box" style="width:210px;">
+        <div class="step-label">① 左パネルからOUを選択</div>
+        <div class="admin-mock">
+          <div class="admin-header"><div class="admin-logo">🔑 Passwordless</div></div>
+          <div class="admin-main" style="padding:8px;">
+            <div style="font-size:11px;font-weight:700;color:#333;margin-bottom:6px;">Organisational units</div>
+            <div style="border:1px solid #eee;border-radius:6px;overflow:hidden;">
+              <div style="padding:5px 8px;font-size:10px;color:#555;background:#f8f9fa;border-bottom:1px solid #eee;">🏢 adventure-inc.co.jp</div>
+              <div style="padding:5px 8px 5px 20px;font-size:10px;color:#555;border-bottom:1px solid #eee;">adventure-apac.com</div>
+              <div style="padding:5px 8px 5px 20px;font-size:10px;background:#e8f0fe;color:#1a73e8;font-weight:700;border-bottom:1px solid #eee;">japan ← 選択</div>
+              <div style="padding:5px 8px 5px 20px;font-size:10px;color:#555;">vacations</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="fl-arr">→</div>
+      <div class="fl-box" style="flex:1;">
+        <div class="step-label">② チェックして「OVERRIDE」をクリック</div>
+        <div class="admin-mock">
+          <div class="admin-header"><div class="admin-logo">🔑 Passwordless（japan）</div></div>
+          <div class="admin-main" style="padding:10px;">
+            <div style="background:#fff3e0;border-radius:6px;padding:8px;font-size:11px;color:#e65100;margin-bottom:10px;border:1px solid #ff9800;">📌 現在：上位OUから継承（未チェック）</div>
+            <div class="banner-warn">
+              <span>⚠️</span>
+              <span style="font-size:10px;">This setting doesn't apply when users are authenticated by a third-party identity provider</span>
+            </div>
+            <div class="checkbox-wrap">
+              <div class="cb-box"><span class="cb-check">✓</span></div>
+              <div class="cb-label"><strong>Allow users to skip their password and authenticate with a passkey</strong>（このOUのみ）</div>
+            </div>
+            <div style="background:#e3f2fd;border-radius:6px;padding:8px;font-size:10px;color:#0d47a1;margin-top:8px;border:1px solid #90caf9;">
+              ℹ️ Override will overrule the settings inherited from parent organisational unit 'adventure-inc.co.jp'
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:10px;">
+              <div style="font-size:12px;color:#555;font-weight:700;">CANCEL</div>
+              <div style="font-size:12px;color:#1a73e8;font-weight:700;">OVERRIDE ← クリックして保存</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:14px;background:#e8eaf6;border-radius:8px;padding:12px 16px;font-size:13px;">
+      <strong>📌 ボタンの使い分け</strong>
+      <table style="width:100%;margin-top:8px;border-collapse:collapse;font-size:12px;">
+        <tr style="background:#c5cae9;">
+          <th style="padding:6px 10px;text-align:left;border-radius:4px 0 0 0;">操作対象</th>
+          <th style="padding:6px 10px;text-align:left;border-radius:0 4px 0 0;">ボタン</th>
+        </tr>
+        <tr style="background:#fff;">
+          <td style="padding:6px 10px;border-bottom:1px solid #eee;">最上位 adventure-inc.co.jp</td>
+          <td style="padding:6px 10px;border-bottom:1px solid #eee;font-weight:700;color:#1a73e8;">SAVE</td>
+        </tr>
+        <tr style="background:#f5f5f5;">
+          <td style="padding:6px 10px;">配下のOU（japan、vacations など）</td>
+          <td style="padding:6px 10px;font-weight:700;color:#1a73e8;">OVERRIDE</td>
+        </tr>
+      </table>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="step-item"><div class="si-num blue">1</div><div class="si-text">左側の<strong>Organisational units</strong>パネルから先行展開したいOUを選択します（例：<strong>japan</strong>）。</div></div>
+      <div class="step-item"><div class="si-num blue">2</div><div class="si-text"><strong>「Allow users to skip their password and authenticate with a passkey」</strong>のチェックボックスを☑にします。</div></div>
+      <div class="step-item"><div class="si-num blue">3</div><div class="si-text"><strong>「OVERRIDE」</strong>をクリックしてこのOUのみに設定を適用します。</div></div>
+      <div class="tip-box">
+        💡 <strong>推奨展開順序：</strong><br>
+        ① japan OUのみ（パイロット、3/30）→ ② 問題なければ全社展開（3/31〜）<br>
+        OU別設定により、問題発生時に特定部署だけ素早く切り戻しができます。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 4 -->
+<div class="slide">
+  <div class="slide-head green"><div class="snum">4</div><h2>動作確認</h2><div class="tag2">約3分</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;font-weight:700;color:#1b5e20;margin-bottom:12px;">📌 設定後に必ず以下の方法で動作確認を行ってください</p>
+    <div class="two-col" style="margin-bottom:16px;">
+      <div style="background:#f0f4ff;border-radius:10px;padding:16px;border:2px solid #90b0f0;">
+        <div style="font-size:13px;font-weight:700;color:#0d47a1;margin-bottom:10px;">📌 管理者自身で確認する方法</div>
+        <div class="step-item"><div class="si-num blue">1</div><div class="si-text" style="font-size:12px;">シークレットウィンドウ（<code>Ctrl+Shift+N</code>）を開く</div></div>
+        <div class="step-item"><div class="si-num blue">2</div><div class="si-text" style="font-size:12px;"><strong>accounts.google.com</strong> にアクセスし、パスキー設定済みのテストアカウントのメールアドレスを入力</div></div>
+        <div class="step-item"><div class="si-num blue">3</div><div class="si-text" style="font-size:12px;">「パスキーを使って本人確認を行います」と表示されることを確認</div></div>
+        <div class="step-item"><div class="si-num blue">4</div><div class="si-text" style="font-size:12px;">パスキー（指紋・顔・PIN）で認証し、サインインできることを確認</div></div>
+        <div class="step-item"><div class="si-num blue">5</div><div class="si-text" style="font-size:12px;"><strong>Keeper</strong>を起動し、Googleパスワードの入力なしで開けることを確認</div></div>
+      </div>
+      <div>
+        <div style="background:#e8f5e9;border:2px solid #4caf50;border-radius:10px;padding:14px;margin-bottom:12px;">
+          <div style="font-size:13px;font-weight:700;color:#1b5e20;margin-bottom:8px;">✅ 正常動作のチェックリスト</div>
+          <div style="font-size:12px;color:#333;line-height:1.9;">
+            ☑ メールアドレス入力後にパスキー認証画面が表示される<br>
+            ☑ パスワード入力画面が表示されない<br>
+            ☑ パスキー認証でサインインが完了する<br>
+            ☑ Googleアカウントのページが開く<br>
+            ☑ KeeperがGoogleパスワードなしで起動する
+          </div>
+        </div>
+        <div class="warn-box">
+          ⚠️ <strong>パスキー認証画面が表示されない場合</strong><br>
+          設定の反映に数分〜最大24時間かかる場合があります。ブラウザのキャッシュをクリアするか、シークレットウィンドウで再試行してください。
+        </div>
+      </div>
+    </div>
+    <div class="info-box">
+      💡 <strong>管理コンソールでユーザーのパスキー登録状況を確認する方法</strong><br>
+      管理コンソール → ユーザー → 対象ユーザーを選択 → 「セキュリティ」タブ → 「パスキー」欄でパスキーの登録有無・デバイス名を確認できます。
+    </div>
+  </div>
+</div>
+
+<!-- トラブルシューティング -->
+<div class="slide">
+  <div class="slide-head orange"><div class="snum">5</div><h2>よくある問題と対処法</h2></div>
+  <div class="slide-body">
+    <div class="trouble-grid">
+      <div class="tr-card prob"><h4>🔍 「Passwordless」メニューが見つからない</h4><p>「認証」の配下に「Passwordless」が表示されない</p></div>
+      <div class="tr-card sol"><h4>✅ 対処法</h4><p>管理コンソールの検索バーに「passwordless」または「パスキー」と入力すると直接移動できます。Google WorkspaceのプランがBusiness Starter以上か確認してください。</p></div>
+
+      <div class="tr-card prob"><h4>🔒 チェックボックスを変更できない</h4><p>チェックボックスがグレーアウトして操作できない</p></div>
+      <div class="tr-card sol"><h4>✅ 対処法</h4><p>ログイン中のアカウントにスーパー管理者権限があるか確認してください。権限がない場合はスーパー管理者に依頼してください。</p></div>
+
+      <div class="tr-card prob"><h4>⏱ 設定後も変化がない</h4><p>有効化したのに社員側でパスキーが使えない</p></div>
+      <div class="tr-card sol"><h4>✅ 対処法</h4><p>設定の反映に数分〜最大24時間かかります。社員側のブラウザのキャッシュをクリアするか、シークレットウィンドウで再試行してください。</p></div>
+
+      <div class="tr-card prob"><h4>🔗 KeeperでパスキーがSSO連携しない</h4><p>Google側は動くがKeeperを開くとパスワードを求められる</p></div>
+      <div class="tr-card sol"><h4>✅ 対処法</h4><p>設定画面の警告（third-party identity provider）の影響の可能性があります。Keeper側のSSO設定を確認するか、コーポレートIT課にお問い合わせください。</p></div>
+
+      <div class="tr-card prob"><h4>↩️ 設定を元に戻したい</h4><p>パスワードスキップを無効化したい</p></div>
+      <div class="tr-card sol"><h4>✅ 対処法</h4><p>同じ画面でチェックボックスを外して「SAVE」（最上位OU）または「OVERRIDE」（配下OU）をクリックしてください。ユーザーは再びパスワードでのサインインが必要になります。</p></div>
+    </div>
+
+    <div style="margin-top:16px;background:#e8eaf6;border-radius:10px;padding:14px 18px;font-size:13px;">
+      ❓ 上記で解決しない場合は Slack <strong>#keeper-support</strong> チャンネルまたはコーポレートIT課までお問い合わせください。
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
