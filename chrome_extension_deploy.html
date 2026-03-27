@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Keeper Chrome拡張 デプロイ手順書</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Hiragino Sans','Yu Gothic',Arial,sans-serif; background:#f0f4f8; color:#1a1a2e; }
+
+.cover {
+  background: linear-gradient(135deg,#0d1b4b 0%,#1a3a6b 50%,#0a7a7a 100%);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:48px 64px; gap:40px; margin-bottom:32px; position:relative; overflow:hidden;
+}
+.cover::before { content:''; position:absolute; inset:0;
+  background: radial-gradient(circle at 30% 50%, rgba(0,200,200,0.15) 0%, transparent 60%),
+              radial-gradient(circle at 70% 30%, rgba(100,150,255,0.1) 0%, transparent 50%); }
+.cover-left { flex:1; position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:16px; }
+.cover-icon { font-size:90px; filter:drop-shadow(0 0 24px rgba(100,200,255,0.5)); }
+.mbadge { background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.4); border-radius:16px; padding:5px 14px; font-size:12px; color:#fff; font-weight:700; text-align:center; }
+.cover-right { flex:1.4; position:relative; z-index:1; color:#fff; }
+.cover-tag { background:rgba(255,200,0,0.9); color:#1a1a2e; font-size:12px; font-weight:700; padding:4px 14px; border-radius:4px; display:inline-block; margin-bottom:14px; }
+.cover-right h1 { font-size:30px; font-weight:900; line-height:1.3; margin-bottom:14px; }
+.cover-right .cover-sub { font-size:12px; opacity:0.75; margin-bottom:16px; }
+.cover-desc { font-size:13px; line-height:1.8; background:rgba(255,255,255,0.1); border-radius:8px; padding:14px; border-left:3px solid #00d4d4; margin-bottom:14px; }
+.cover-desc strong { color:#ffd700; }
+.time-bar { background:rgba(255,255,255,0.1); border-radius:8px; padding:10px 14px; border:1px solid rgba(255,255,255,0.2); }
+.tb-title { font-size:11px; font-weight:700; color:#ffd700; margin-bottom:6px; }
+.time-steps { display:flex; }
+.ts { flex:1; text-align:center; padding:5px 2px; border-right:1px solid rgba(255,255,255,0.2); }
+.ts:last-child { border-right:none; }
+.ts .ts-step { font-size:9px; opacity:0.7; }
+.ts .ts-min { font-size:13px; font-weight:900; color:#ffd700; }
+.ts .ts-label { font-size:9px; opacity:0.8; }
+
+.slide { background:#fff; margin:0 auto 28px; max-width:1000px; border-radius:16px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,0.10); }
+.slide-head { color:#fff; padding:18px 36px; display:flex; align-items:center; gap:14px; }
+.slide-head.blue   { background:linear-gradient(90deg,#0d1b4b,#1a6090); }
+.slide-head.green  { background:linear-gradient(90deg,#1b5e20,#2e7d32); }
+.slide-head.orange { background:linear-gradient(90deg,#e65100,#f57c00); }
+.slide-head .snum { background:rgba(255,255,255,0.2); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:900; flex-shrink:0; }
+.slide-head h2 { font-size:21px; font-weight:800; }
+.slide-head .tag2 { margin-left:auto; background:rgba(255,200,0,0.9); color:#1a1a2e; font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; white-space:nowrap; }
+.slide-body { padding:30px 36px; }
+
+.warn-box    { background:#fff3e0; border:2px solid #ff9800; border-radius:8px; padding:11px 14px; font-size:13px; color:#7b3a00; margin-top:8px; }
+.info-box    { background:#e3f2fd; border:2px solid #1565c0; border-radius:8px; padding:11px 14px; font-size:13px; color:#0d47a1; margin-top:8px; }
+.success-box { background:#e8f5e9; border:2px solid #4caf50; border-radius:8px; padding:11px 14px; font-size:13px; color:#1b5e20; margin-top:8px; }
+.tip-box     { background:#f3e5f5; border:2px solid #9c27b0; border-radius:8px; padding:11px 14px; font-size:13px; color:#4a148c; margin-top:8px; }
+.danger-box  { background:#ffebee; border:2px solid #c62828; border-radius:8px; padding:11px 14px; font-size:13px; color:#b71c1c; margin-top:8px; }
+
+.step-item { display:flex; gap:12px; align-items:flex-start; margin-bottom:10px; }
+.si-num { color:#fff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:900; flex-shrink:0; margin-top:1px; }
+.si-num.blue  { background:linear-gradient(135deg,#1a6090,#0d1b4b); }
+.si-num.green { background:linear-gradient(135deg,#2e7d32,#1b5e20); }
+.si-text { font-size:13px; line-height:1.7; color:#333; }
+.si-text strong { color:#0d1b4b; background:#e8f0ff; padding:1px 5px; border-radius:3px; }
+.si-text strong.g { color:#1b5e20; background:#e8f5e9; }
+
+.flow-row { display:flex; align-items:flex-start; gap:6px; flex-wrap:nowrap; overflow-x:auto; }
+.fl-box { flex:0 0 auto; }
+.fl-arr { align-self:center; font-size:18px; color:#1565c0; font-weight:700; flex-shrink:0; }
+.step-label { font-size:10px; font-weight:700; color:#e65100; margin-bottom:4px; text-align:center; }
+
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.trouble-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.tr-card { border-radius:8px; padding:14px; }
+.tr-card.prob { background:#fff3e0; border-left:3px solid #e65100; }
+.tr-card.sol  { background:#e8f5e9; border-left:3px solid #2e7d32; }
+.tr-card h4 { font-size:12px; font-weight:700; margin-bottom:6px; }
+.tr-card.prob h4 { color:#bf360c; }
+.tr-card.sol  h4 { color:#1b5e20; }
+.tr-card p { font-size:12px; color:#444; line-height:1.6; }
+
+/* 管理コンソールモック */
+.admin-mock { background:#fff; border-radius:10px; overflow:hidden; border:1px solid #ddd; font-size:11px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+.admin-header { background:#1a73e8; color:#fff; padding:8px 14px; display:flex; align-items:center; gap:10px; }
+.admin-logo { font-size:13px; font-weight:700; }
+.admin-body { display:flex; }
+.admin-side { width:160px; background:#f8f9fa; border-right:1px solid #eee; padding:6px; }
+.admin-side-item { padding:5px 8px; border-radius:4px; font-size:11px; color:#555; margin-bottom:2px; display:flex; align-items:center; gap:5px; }
+.admin-side-item.active { background:#e8f0fe; color:#1a73e8; font-weight:700; }
+.admin-main { flex:1; padding:12px; }
+.admin-section-title { font-size:12px; font-weight:700; color:#1a1a2e; margin-bottom:8px; padding-bottom:4px; border-bottom:1px solid #eee; }
+.admin-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #f5f5f5; font-size:11px; }
+.admin-row:last-child { border:none; }
+.admin-badge { padding:3px 10px; border-radius:12px; font-size:10px; font-weight:700; }
+.admin-badge.on  { background:#e6f4ea; color:#137333; }
+.admin-badge.force { background:#fce8e6; color:#c5221f; }
+.admin-btn { background:#1a73e8; color:#fff; border-radius:4px; padding:4px 12px; font-size:10px; font-weight:700; }
+
+/* Chrome拡張エントリーモック */
+.ext-entry { background:#f8f9fa; border-radius:8px; padding:10px 12px; border:1px solid #ddd; display:flex; align-items:center; gap:10px; margin-bottom:6px; font-size:11px; }
+.ext-icon { width:32px; height:32px; border-radius:6px; background:linear-gradient(135deg,#ffc107,#ff9800); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+.ext-info { flex:1; }
+.ext-name { font-weight:700; color:#333; margin-bottom:2px; }
+.ext-id   { font-size:9px; color:#888; font-family:monospace; }
+.ext-status { font-size:10px; font-weight:700; }
+.ext-status.force { color:#c5221f; background:#fce8e6; padding:2px 8px; border-radius:10px; }
+.ext-status.on    { color:#137333; background:#e6f4ea; padding:2px 8px; border-radius:10px; }
+
+@media print {
+  body { background:#fff; }
+  .cover, .slide { box-shadow:none; margin:0; border-radius:0; }
+  .cover { break-inside:avoid; page-break-inside:avoid; }
+  .slide { break-before:page; page-break-before:always; break-inside:avoid; page-break-inside:avoid; margin-bottom:0 !important; }
+  .slide-head, .step-item, .flow-row, .fl-box, .two-col, .trouble-grid, .tr-card,
+  .warn-box, .info-box, .success-box, .danger-box, .tip-box,
+  .admin-mock, .ext-entry, .slide-body > * { break-inside:avoid; page-break-inside:avoid; }
+}
+</style>
+</head>
+<body>
+
+<!-- 表紙 -->
+<div class="cover">
+  <div class="cover-left">
+    <div class="cover-icon">🧩</div>
+    <div class="mbadge">☁️ Google管理コンソール操作</div>
+    <div class="mbadge">🔐 Keeper Chrome拡張 強制インストール</div>
+  </div>
+  <div class="cover-right">
+    <div class="cover-tag">IT管理者向け手順書</div>
+    <h1>Keeper Chrome拡張<br>全社デプロイ手順書</h1>
+    <div class="cover-sub">発行：IT事業部 コーポレートIT課　｜　2026年3月26日</div>
+    <div class="cover-desc">
+      本手順書では、Google管理コンソールを使って<strong>KeeperのChrome拡張機能を全社員のChromeブラウザに自動インストール</strong>する方法を説明します。<br>
+      社員が手動でインストールする必要がなくなり、<strong>展開漏れを防ぎ</strong>ます。
+    </div>
+    <div class="time-bar">
+      <div class="tb-title">⏱ 作業の目安時間（合計：約15〜20分）</div>
+      <div class="time-steps">
+        <div class="ts"><div class="ts-step">事前確認</div><div class="ts-min">2分</div><div class="ts-label">ID確認</div></div>
+        <div class="ts"><div class="ts-step">Step 1</div><div class="ts-min">3分</div><div class="ts-label">コンソールへ</div></div>
+        <div class="ts"><div class="ts-step">Step 2</div><div class="ts-min">5分</div><div class="ts-label">拡張を追加</div></div>
+        <div class="ts"><div class="ts-step">Step 3</div><div class="ts-min">3分</div><div class="ts-label">ポリシー設定</div></div>
+        <div class="ts"><div class="ts-step">Step 4</div><div class="ts-min">3分</div><div class="ts-label">動作確認</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 事前確認 -->
+<div class="slide">
+  <div class="slide-head blue"><div class="snum">📋</div><h2>事前確認：KeeperのChrome拡張IDを確認する</h2></div>
+  <div class="slide-body">
+    <p style="font-size:13px;font-weight:700;color:#0d1b4b;margin-bottom:12px;">📌 管理コンソールへの登録に必要な情報</p>
+    <div class="two-col" style="margin-bottom:20px;">
+      <div style="background:#e8f0ff;border:2px solid #1565c0;border-radius:10px;padding:16px;">
+        <div style="font-size:14px;font-weight:800;color:#0d1b4b;margin-bottom:12px;">🔑 Keeper拡張機能の情報</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="background:#fff;border-radius:6px;padding:10px;border:1px solid #90b0f0;">
+            <div style="font-size:11px;color:#888;margin-bottom:3px;">拡張機能名</div>
+            <div style="font-size:13px;font-weight:700;color:#0d1b4b;">Keeper® Password Manager & Digital Vault</div>
+          </div>
+          <div style="background:#fff;border-radius:6px;padding:10px;border:1px solid #90b0f0;">
+            <div style="font-size:11px;color:#888;margin-bottom:3px;">Chrome拡張ID（コピーして使用）</div>
+            <div style="font-size:13px;font-weight:700;color:#1565c0;font-family:monospace;background:#f0f4ff;padding:6px 8px;border-radius:4px;word-break:break-all;">bfogiafebfohielmmehodmfbbebbbpei</div>
+          </div>
+          <div style="background:#fff;border-radius:6px;padding:10px;border:1px solid #90b0f0;">
+            <div style="font-size:11px;color:#888;margin-bottom:3px;">Chrome Web Store URL</div>
+            <div style="font-size:11px;color:#1565c0;font-family:monospace;word-break:break-all;">chrome.google.com/webstore/detail/bfogiafebfohielmmehodmfbbebbbpei</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="background:#e8f5e9;border:2px solid #4caf50;border-radius:10px;padding:14px;">
+          <div style="font-size:13px;font-weight:800;color:#1b5e20;margin-bottom:8px;">✅ デプロイ方法の選択</div>
+          <div style="font-size:12px;color:#333;line-height:1.9;">
+            <strong>強制インストール（推奨）</strong><br>
+            社員の操作なしに自動でインストールされる。アンインストール不可。<br><br>
+            <strong>インストール許可</strong><br>
+            社員が自分でインストールできるが、強制ではない。
+          </div>
+        </div>
+        <div class="tip-box">
+          💡 本手順書では<strong>「強制インストール」</strong>で設定します。全社員に確実に配布できます。
+        </div>
+      </div>
+    </div>
+    <div class="warn-box">
+      ⚠️ <strong>事前に確認</strong>：Google管理コンソールへのログインに<strong>スーパー管理者権限</strong>が必要です。また、対象社員が<strong>ChromeブラウザにGoogleアカウントでログイン</strong>していることが前提です。
+    </div>
+  </div>
+</div>
+
+<!-- Step 1: 管理コンソールへアクセス -->
+<div class="slide">
+  <div class="slide-head blue"><div class="snum">1</div><h2>Google管理コンソールのChromeブラウザ設定を開く</h2><div class="tag2">約3分</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;font-weight:700;color:#0d1b4b;margin-bottom:10px;">📌 管理コンソール → デバイス → Chrome → アプリと拡張機能 へ移動</p>
+    <div class="flow-row" style="margin-bottom:16px;">
+      <div class="fl-box" style="width:160px;">
+        <div class="step-label">① admin.google.com にアクセス</div>
+        <div class="admin-mock">
+          <div class="admin-header"><div class="admin-logo">G 管理コンソール</div></div>
+          <div style="padding:8px;display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+            <div style="background:#f8f9fa;border-radius:6px;padding:8px;text-align:center;font-size:10px;"><div style="font-size:16px;margin-bottom:3px;">👤</div>ユーザー</div>
+            <div style="background:#e8f0fe;border-radius:6px;padding:8px;text-align:center;font-size:10px;border:1px solid #90b0f0;"><div style="font-size:16px;margin-bottom:3px;">📱</div><strong style="color:#1a73e8;">デバイス</strong></div>
+          </div>
+        </div>
+      </div>
+      <div class="fl-arr">→</div>
+      <div class="fl-box" style="width:170px;">
+        <div class="step-label">② デバイス → Chrome</div>
+        <div class="admin-mock">
+          <div class="admin-header"><div class="admin-logo">📱 デバイス</div></div>
+          <div class="admin-body">
+            <div class="admin-side" style="width:130px;">
+              <div class="admin-side-item">📱 モバイル</div>
+              <div class="admin-side-item active">🌐 Chrome ←</div>
+              <div class="admin-side-item">💻 Windows</div>
+            </div>
+            <div class="admin-main" style="font-size:10px;color:#888;">Chrome設定...</div>
+          </div>
+        </div>
+      </div>
+      <div class="fl-arr">→</div>
+      <div class="fl-box" style="width:190px;">
+        <div class="step-label">③ Chrome → アプリと拡張機能</div>
+        <div class="admin-mock">
+          <div class="admin-header"><div class="admin-logo">🌐 Chrome</div></div>
+          <div class="admin-body">
+            <div class="admin-side" style="width:140px;">
+              <div class="admin-side-item">⚙️ 設定</div>
+              <div class="admin-side-item">👤 ユーザーとブラウザ</div>
+              <div class="admin-side-item active">🧩 アプリと拡張機能 ←</div>
+              <div class="admin-side-item">🖨️ プリンター</div>
+            </div>
+            <div class="admin-main" style="font-size:10px;color:#888;">拡張機能一覧...</div>
+          </div>
+        </div>
+      </div>
+      <div class="fl-arr">→</div>
+      <div class="fl-box" style="flex:1;">
+        <div class="step-label">④ アプリと拡張機能の管理画面</div>
+        <div class="admin-mock">
+          <div class="admin-header"><div class="admin-logo">🧩 アプリと拡張機能</div></div>
+          <div class="admin-main" style="padding:10px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <div style="font-size:11px;font-weight:700;">インストールされている拡張機能</div>
+              <div style="background:#1a73e8;color:#fff;border-radius:4px;padding:4px 10px;font-size:10px;font-weight:700;">＋ 追加 ←</div>
+            </div>
+            <div style="background:#f8f9fa;border-radius:6px;padding:8px;font-size:10px;color:#888;text-align:center;">まだ拡張機能がありません</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="step-item"><div class="si-num blue">1</div><div class="si-text"><strong>admin.google.com</strong> にアクセスし、スーパー管理者でログインします。</div></div>
+      <div class="step-item"><div class="si-num blue">2</div><div class="si-text">左メニューまたはトップ画面から<strong>「デバイス」</strong>をクリックします。</div></div>
+      <div class="step-item"><div class="si-num blue">3</div><div class="si-text">デバイスメニューから<strong>「Chrome」→「アプリと拡張機能」→「ユーザーとブラウザ」</strong>をクリックします。</div></div>
+      <div class="info-box">
+        💡 「ユーザーとブラウザ」タブを選択することで、OU別に拡張機能を配布できます。「マネージドゲストセッション」タブは今回は使用しません。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 2: 拡張機能を追加 -->
+<div class="slide">
+  <div class="slide-head blue"><div class="snum">2</div><h2>Keeper拡張機能を追加する</h2><div class="tag2">約5分</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;font-weight:700;color:#0d1b4b;margin-bottom:10px;">📌 拡張機能IDを使って追加します</p>
+    <div class="flow-row" style="margin-bottom:16px;">
+      <div class="fl-box" style="width:200px;">
+        <div class="step-label">① 右下の「＋」ボタンをクリック</div>
+        <div class="admin-mock">
+          <div class="admin-header"><div class="admin-logo">🧩 アプリと拡張機能</div></div>
+          <div class="admin-main" style="padding:10px;position:relative;min-height:80px;">
+            <div style="font-size:10px;color:#888;margin-bottom:6px;">拡張機能一覧</div>
+            <div style="position:absolute;bottom:8px;right:8px;width:32px;height:32px;background:#1a73e8;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:700;">＋</div>
+            <div style="font-size:9px;color:#1a73e8;font-weight:700;position:absolute;bottom:6px;right:44px;">← クリック</div>
+          </div>
+        </div>
+      </div>
+      <div class="fl-arr">→</div>
+      <div class="fl-box" style="width:210px;">
+        <div class="step-label">② 「Chrome Web Storeから追加」を選択</div>
+        <div style="background:#fff;border-radius:8px;border:1px solid #ddd;overflow:hidden;font-size:11px;box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+          <div style="padding:8px 12px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:8px;"><div style="font-size:16px;">🌐</div><div><div style="font-weight:700;font-size:11px;">Chrome Web Storeから追加</div><div style="font-size:9px;color:#888;">拡張機能IDで検索</div></div><div style="margin-left:auto;color:#1a73e8;">←</div></div>
+          <div style="padding:8px 12px;display:flex;align-items:center;gap:8px;opacity:0.5;"><div style="font-size:16px;">📁</div><div><div style="font-weight:700;font-size:11px;">外部ソースから追加</div><div style="font-size:9px;color:#888;">URLを指定</div></div></div>
+        </div>
+      </div>
+      <div class="fl-arr">→</div>
+      <div class="fl-box" style="flex:1;">
+        <div class="step-label">③ 拡張機能IDを入力して検索・追加</div>
+        <div style="background:#fff;border-radius:10px;border:1px solid #ddd;padding:14px;font-size:11px;box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+          <div style="font-weight:700;font-size:12px;margin-bottom:10px;">🌐 Chrome Web Storeから拡張機能を追加</div>
+          <div style="font-size:11px;color:#555;margin-bottom:6px;">拡張機能IDを入力：</div>
+          <div style="display:flex;gap:6px;margin-bottom:8px;">
+            <div style="flex:1;border:2px solid #1a73e8;border-radius:5px;padding:6px 8px;font-size:10px;color:#1a73e8;font-weight:700;font-family:monospace;">bfogiafebfohielmmehodmfbbebbbpei</div>
+            <div style="background:#1a73e8;color:#fff;border-radius:5px;padding:6px 10px;font-size:10px;font-weight:700;">検索</div>
+          </div>
+          <div class="ext-entry">
+            <div class="ext-icon">🔐</div>
+            <div class="ext-info">
+              <div class="ext-name">Keeper® Password Manager</div>
+              <div class="ext-id">bfogiafebfohielmmehodmfbbebbbpei</div>
+            </div>
+            <div style="background:#1a73e8;color:#fff;border-radius:4px;padding:3px 8px;font-size:10px;font-weight:700;">選択 ←</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="step-item"><div class="si-num blue">1</div><div class="si-text">「アプリと拡張機能」画面の右下にある<strong>「＋」ボタン</strong>をクリックします。</div></div>
+      <div class="step-item"><div class="si-num blue">2</div><div class="si-text"><strong>「Chrome Web Storeから追加」</strong>を選択します。</div></div>
+      <div class="step-item"><div class="si-num blue">3</div><div class="si-text">検索ボックスに以下のIDを入力して検索します。<br><div style="font-family:monospace;font-size:13px;font-weight:700;color:#1565c0;background:#f0f4ff;border-radius:4px;padding:6px 10px;margin-top:6px;display:inline-block;">bfogiafebfohielmmehodmfbbebbbpei</div></div></div>
+      <div class="step-item"><div class="si-num blue">4</div><div class="si-text">「Keeper® Password Manager & Digital Vault」が表示されたら選択して<strong>「保存」</strong>をクリックします。</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 3: インストールポリシーの設定 -->
+<div class="slide">
+  <div class="slide-head blue"><div class="snum">3</div><h2>インストールポリシーを「強制インストール」に設定</h2><div class="tag2">約3分</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;font-weight:700;color:#0d1b4b;margin-bottom:10px;">📌 追加した拡張機能のインストール方法を設定します</p>
+    <div class="flow-row" style="margin-bottom:16px;">
+      <div class="fl-box" style="width:220px;">
+        <div class="step-label">① 追加されたKeeperをクリック</div>
+        <div class="admin-mock">
+          <div class="admin-header"><div class="admin-logo">🧩 アプリと拡張機能</div></div>
+          <div class="admin-main" style="padding:8px;">
+            <div class="ext-entry" style="cursor:pointer;border:2px solid #1a73e8;">
+              <div class="ext-icon">🔐</div>
+              <div class="ext-info">
+                <div class="ext-name">Keeper® Password Manager</div>
+                <div class="ext-id">bfogiafebfohielmmehodmfbbebbbpei</div>
+              </div>
+              <div class="ext-status on">許可</div>
+            </div>
+            <div style="font-size:9px;color:#1a73e8;font-weight:700;text-align:right;">← クリック</div>
+          </div>
+        </div>
+      </div>
+      <div class="fl-arr">→</div>
+      <div class="fl-box" style="flex:1;">
+        <div class="step-label">② インストールポリシーを「強制インストール」に変更して保存</div>
+        <div class="admin-mock">
+          <div class="admin-header"><div class="admin-logo">🔐 Keeper® Password Manager の設定</div></div>
+          <div class="admin-main" style="padding:12px;">
+            <div style="margin-bottom:12px;">
+              <div style="font-size:12px;font-weight:700;color:#333;margin-bottom:8px;">インストールポリシー</div>
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;background:#f8f9fa;border:1px solid #eee;"><div style="width:14px;height:14px;border-radius:50%;border:2px solid #bbb;"></div><div style="font-size:11px;color:#555;">許可（ユーザーが手動でインストール可）</div></div>
+                <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;background:#fce8e6;border:1px solid #c5221f;"><div style="width:14px;height:14px;border-radius:50%;border:2px solid #c5221f;background:#c5221f;display:flex;align-items:center;justify-content:center;"><div style="width:6px;height:6px;border-radius:50%;background:#fff;"></div></div><div style="font-size:11px;color:#c5221f;font-weight:700;">強制インストール ← これを選択</div></div>
+                <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;background:#f8f9fa;border:1px solid #eee;"><div style="width:14px;height:14px;border-radius:50%;border:2px solid #bbb;"></div><div style="font-size:11px;color:#555;">ブロック</div></div>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:8px;">
+              <div style="padding:5px 14px;border-radius:4px;background:#f5f5f5;font-size:11px;">キャンセル</div>
+              <div style="padding:5px 14px;border-radius:4px;background:#1a73e8;color:#fff;font-size:11px;font-weight:700;">保存 ←</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="step-item"><div class="si-num blue">1</div><div class="si-text">一覧に追加されたKeeperをクリックして設定画面を開きます。</div></div>
+      <div class="step-item"><div class="si-num blue">2</div><div class="si-text">「インストールポリシー」のドロップダウンで<strong>「強制インストール」</strong>を選択します。</div></div>
+      <div class="step-item"><div class="si-num blue">3</div><div class="si-text"><strong>「保存」</strong>をクリックして設定を確定します。</div></div>
+      <div class="success-box">
+        ✅ 設定後、一覧のKeeperのステータスが<strong>「強制インストール」</strong>に変わっていれば完了です。<br>
+        <span style="font-size:12px;margin-top:4px;display:block;">社員がChromeを次回起動したとき（または数分以内）に自動でインストールされます。</span>
+      </div>
+      <div class="warn-box">
+        ⚠️ <strong>反映タイミングについて</strong><br>
+        ポリシーの反映には最大<strong>8時間</strong>かかる場合があります。即時反映させるには社員のChromeで <strong>chrome://policy</strong> を開き「ポリシーを再読み込み」をクリックしてもらいます。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 4: OU別設定 -->
+<div class="slide">
+  <div class="slide-head blue"><div class="snum">4</div><h2>組織ユニット（OU）別に配布する（推奨）</h2><div class="tag2">任意・推奨</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;color:#444;margin-bottom:14px;">全社一斉ではなく、<strong>特定の部署・グループだけに先行展開</strong>する場合の手順です。</p>
+
+    <div class="two-col" style="margin-bottom:16px;">
+      <div style="background:#e8f0ff;border:2px solid #1565c0;border-radius:10px;padding:16px;">
+        <div style="font-size:13px;font-weight:800;color:#0d1b4b;margin-bottom:10px;">📌 OU別設定の手順</div>
+        <div class="step-item"><div class="si-num blue">1</div><div class="si-text" style="font-size:12px;">「アプリと拡張機能」画面の<strong>左側のOUツリー</strong>から対象のOUを選択します。</div></div>
+        <div class="step-item"><div class="si-num blue">2</div><div class="si-text" style="font-size:12px;">選択したOU内の拡張機能一覧で<strong>Keeperを追加</strong>してStep 2〜3と同じ手順で強制インストールを設定します。</div></div>
+        <div class="step-item"><div class="si-num blue">3</div><div class="si-text" style="font-size:12px;">問題なければ<strong>ルート組織（全社）</strong>に同じ設定を適用します。</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="background:#e8f5e9;border:2px solid #4caf50;border-radius:10px;padding:14px;">
+          <div style="font-size:13px;font-weight:700;color:#1b5e20;margin-bottom:8px;">✅ 推奨展開順序</div>
+          <div style="font-size:12px;color:#333;line-height:2;">
+            ① IT部門のみ（パイロット・1週間）<br>
+            ↓<br>
+            ② 問題なければ全社展開<br>
+            ↓<br>
+            ③ Keeperセットアップ手順書を全社展開
+          </div>
+        </div>
+        <div class="tip-box">
+          💡 OU別設定により問題発生時に特定部署だけ素早く切り戻しができます。
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 5: 動作確認 -->
+<div class="slide">
+  <div class="slide-head green"><div class="snum">5</div><h2>動作確認：社員PCでインストールを確認する</h2><div class="tag2">約3分</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;font-weight:700;color:#1b5e20;margin-bottom:12px;">📌 以下の2つの方法で確認してください</p>
+    <div class="two-col" style="margin-bottom:16px;">
+      <div style="background:#f0f4ff;border-radius:10px;padding:16px;border:2px solid #90b0f0;">
+        <div style="font-size:13px;font-weight:700;color:#0d1b4b;margin-bottom:10px;">📌 方法①：社員PCのChromeで確認</div>
+        <div class="step-item"><div class="si-num blue">1</div><div class="si-text" style="font-size:12px;">社員のChromeのアドレスバーに <strong>chrome://extensions</strong> と入力</div></div>
+        <div class="step-item"><div class="si-num blue">2</div><div class="si-text" style="font-size:12px;">「Keeper® Password Manager」が表示されていることを確認</div></div>
+        <div class="step-item"><div class="si-num blue">3</div><div class="si-text" style="font-size:12px;">ツールバーに<strong>黄色いKeeperアイコン</strong>が表示されていることを確認</div></div>
+      </div>
+      <div style="background:#f0f4ff;border-radius:10px;padding:16px;border:2px solid #90b0f0;">
+        <div style="font-size:13px;font-weight:700;color:#0d1b4b;margin-bottom:10px;">📌 方法②：管理コンソールで確認</div>
+        <div class="step-item"><div class="si-num blue">1</div><div class="si-text" style="font-size:12px;">管理コンソール → レポート → アプリとサービス → Chromeアプリの利用状況</div></div>
+        <div class="step-item"><div class="si-num blue">2</div><div class="si-text" style="font-size:12px;">Keeperのインストール数が社員数に達しているか確認</div></div>
+      </div>
+    </div>
+
+    <div style="background:#e8f5e9;border:2px solid #4caf50;border-radius:10px;padding:14px;margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:700;color:#1b5e20;margin-bottom:8px;">✅ 確認完了のチェックリスト</div>
+      <div style="font-size:12px;color:#333;line-height:2;">
+        ☑ 社員PCのChromeにKeeperアイコン（黄色い丸）が表示されている<br>
+        ☑ chrome://extensions でKeeperが「有効」になっている<br>
+        ☑ 社員がアンインストールしようとしてもできない（強制インストールのため）<br>
+        ☑ KeeperアイコンをクリックするとログインUI が表示される
+      </div>
+    </div>
+    <div class="info-box">
+      💡 インストール確認後、次のステップは<strong>Keeper導入・移行手順書</strong>に従って社員にSSOログイン・パスワードインポートを実施してもらいます。
+    </div>
+  </div>
+</div>
+
+<!-- トラブルシューティング -->
+<div class="slide">
+  <div class="slide-head orange"><div class="snum">6</div><h2>よくある問題と対処法</h2></div>
+  <div class="slide-body">
+    <div class="trouble-grid">
+      <div class="tr-card prob"><h4>🔍 拡張機能が見つからない</h4><p>IDを入力して検索しても結果が出ない</p></div>
+      <div class="tr-card sol">
+        <h4>✅ 対処法</h4>
+        <p>IDのコピー時に前後のスペースが混入していないか確認してください。正しいID：<br><strong>bfogiafebfohielmmehodmfbbebbbpei</strong><br>Chrome Web Storeで「Keeper Password Manager」と検索して直接URLからIDを確認することもできます。</p>
+      </div>
+
+      <div class="tr-card prob"><h4>⏱ インストールされない</h4><p>設定後も社員PCにKeeperが表示されない</p></div>
+      <div class="tr-card sol">
+        <h4>✅ 対処法</h4>
+        <p>① 社員のChromeで <strong>chrome://policy</strong> を開き「ポリシーを再読み込み」をクリック<br>② Chromeを完全に再起動<br>③ 最大8時間待つ<br>④ 社員がChromeに会社Googleアカウントでログインしているか確認</p>
+      </div>
+
+      <div class="tr-card prob"><h4>🚫 一部のPCにインストールされない</h4><p>特定の社員のPCだけ反映されない</p></div>
+      <div class="tr-card sol">
+        <h4>✅ 対処法</h4>
+        <p>そのユーザーが正しいOUに所属しているか管理コンソールで確認してください。また、ChromeのバージョンやOSによってポリシー反映に差が出ることがあります。</p>
+      </div>
+
+      <div class="tr-card prob"><h4>↩️ デプロイを取り消したい</h4><p>強制インストールを解除したい</p></div>
+      <div class="tr-card sol">
+        <h4>✅ 対処法</h4>
+        <p>管理コンソール → デバイス → Chrome → アプリと拡張機能 → Keeperを選択 → インストールポリシーを「許可」または「ブロック」に変更して保存してください。</p>
+      </div>
+    </div>
+    <div style="margin-top:16px;background:#e8eaf6;border-radius:10px;padding:14px 18px;font-size:13px;">
+      ❓ 上記で解決しない場合は Slack <strong>#keeper-support</strong> チャンネルまたはコーポレートIT課までお問い合わせください。
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

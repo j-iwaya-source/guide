@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Google Admin Console Passkey Setup Guide</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:Arial,'Helvetica Neue',sans-serif; background:#f0f4f8; color:#1a1a2e; }
+
+.cover {
+  background: linear-gradient(135deg,#1a237e 0%,#283593 50%,#1565c0 100%);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:48px 64px; gap:40px; margin-bottom:32px; position:relative; overflow:hidden;
+}
+.cover::before { content:''; position:absolute; inset:0;
+  background: radial-gradient(circle at 20% 50%, rgba(100,180,255,0.15) 0%, transparent 60%),
+              radial-gradient(circle at 80% 30%, rgba(50,100,255,0.1) 0%, transparent 50%); }
+.cover-left { flex:1; position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:16px; }
+.cover-icon { font-size:90px; filter:drop-shadow(0 0 24px rgba(100,180,255,0.6)); }
+.mbadge { background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.4); border-radius:16px; padding:5px 14px; font-size:12px; color:#fff; font-weight:700; text-align:center; }
+.cover-right { flex:1.4; position:relative; z-index:1; color:#fff; }
+.cover-tag { background:rgba(255,200,0,0.9); color:#1a1a2e; font-size:12px; font-weight:700; padding:4px 14px; border-radius:4px; display:inline-block; margin-bottom:14px; }
+.cover-right h1 { font-size:30px; font-weight:900; line-height:1.3; margin-bottom:14px; }
+.cover-right .cover-sub { font-size:12px; opacity:0.75; margin-bottom:16px; }
+.cover-desc { font-size:13px; line-height:1.8; background:rgba(255,255,255,0.1); border-radius:8px; padding:14px; border-left:3px solid #64b5f6; margin-bottom:14px; }
+.cover-desc strong { color:#ffd700; }
+.time-bar { background:rgba(255,255,255,0.1); border-radius:8px; padding:10px 14px; border:1px solid rgba(255,255,255,0.2); }
+.tb-title { font-size:11px; font-weight:700; color:#ffd700; margin-bottom:6px; }
+.time-steps { display:flex; }
+.ts { flex:1; text-align:center; padding:5px 2px; border-right:1px solid rgba(255,255,255,0.2); }
+.ts:last-child { border-right:none; }
+.ts .ts-step { font-size:9px; opacity:0.7; }
+.ts .ts-min { font-size:13px; font-weight:900; color:#ffd700; }
+.ts .ts-label { font-size:9px; opacity:0.8; }
+
+.slide { background:#fff; margin:0 auto 28px; max-width:1000px; border-radius:16px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,0.10); }
+.slide-head { color:#fff; padding:18px 36px; display:flex; align-items:center; gap:14px; }
+.slide-head.blue   { background:linear-gradient(90deg,#1a237e,#1565c0); }
+.slide-head.green  { background:linear-gradient(90deg,#1b5e20,#2e7d32); }
+.slide-head.orange { background:linear-gradient(90deg,#e65100,#f57c00); }
+.slide-head.red    { background:linear-gradient(90deg,#b71c1c,#c62828); }
+.slide-head .snum { background:rgba(255,255,255,0.2); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:900; flex-shrink:0; }
+.slide-head h2 { font-size:21px; font-weight:800; }
+.slide-head .tag2 { margin-left:auto; background:rgba(255,200,0,0.9); color:#1a1a2e; font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; white-space:nowrap; }
+.slide-body { padding:30px 36px; }
+
+.warn-box    { background:#fff3e0; border:2px solid #ff9800; border-radius:8px; padding:11px 14px; font-size:13px; color:#7b3a00; margin-top:8px; }
+.info-box    { background:#e3f2fd; border:2px solid #1565c0; border-radius:8px; padding:11px 14px; font-size:13px; color:#0d47a1; margin-top:8px; }
+.success-box { background:#e8f5e9; border:2px solid #4caf50; border-radius:8px; padding:11px 14px; font-size:13px; color:#1b5e20; margin-top:8px; }
+.danger-box  { background:#ffebee; border:2px solid #c62828; border-radius:8px; padding:11px 14px; font-size:13px; color:#b71c1c; margin-top:8px; }
+.tip-box     { background:#f3e5f5; border:2px solid #9c27b0; border-radius:8px; padding:11px 14px; font-size:13px; color:#4a148c; margin-top:8px; }
+
+.step-item { display:flex; gap:12px; align-items:flex-start; margin-bottom:10px; }
+.si-num { color:#fff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:900; flex-shrink:0; margin-top:1px; }
+.si-num.blue  { background:linear-gradient(135deg,#1565c0,#1a237e); }
+.si-num.green { background:linear-gradient(135deg,#2e7d32,#1b5e20); }
+.si-text { font-size:13px; line-height:1.7; color:#333; }
+.si-text strong { color:#1a237e; background:#e8f0ff; padding:1px 5px; border-radius:3px; }
+.si-text strong.g { color:#1b5e20; background:#e8f5e9; }
+
+.flow-row { display:flex; align-items:flex-start; gap:6px; flex-wrap:nowrap; overflow-x:auto; }
+.fl-box { flex:0 0 auto; }
+.fl-arr { align-self:center; font-size:18px; color:#1565c0; font-weight:700; flex-shrink:0; }
+.step-label { font-size:10px; font-weight:700; color:#e65100; margin-bottom:4px; text-align:center; }
+
+.admin-mock { background:#fff; border-radius:10px; overflow:hidden; border:1px solid #ddd; font-size:11px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+.admin-header { background:#1a73e8; color:#fff; padding:8px 14px; display:flex; align-items:center; gap:10px; }
+.admin-logo { font-size:13px; font-weight:700; }
+.admin-body { display:flex; }
+.admin-side { width:160px; background:#f8f9fa; border-right:1px solid #eee; padding:6px; }
+.admin-side-item { padding:5px 8px; border-radius:4px; font-size:11px; color:#555; margin-bottom:2px; display:flex; align-items:center; gap:5px; }
+.admin-side-item.active { background:#e8f0fe; color:#1a73e8; font-weight:700; }
+.admin-main { flex:1; padding:12px; }
+.admin-section { margin-bottom:12px; }
+.admin-section-title { font-size:12px; font-weight:700; color:#1a1a2e; margin-bottom:8px; padding-bottom:4px; border-bottom:1px solid #eee; }
+.admin-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #f5f5f5; font-size:11px; }
+.admin-row:last-child { border:none; }
+.admin-badge { padding:3px 10px; border-radius:12px; font-size:10px; font-weight:700; }
+.admin-badge.on  { background:#e6f4ea; color:#137333; }
+.admin-badge.off { background:#fce8e6; color:#c5221f; }
+.admin-badge.inherit { background:#e8f0fe; color:#1967d2; }
+.admin-btn { background:#1a73e8; color:#fff; border-radius:4px; padding:4px 12px; font-size:10px; font-weight:700; }
+.admin-breadcrumb { font-size:10px; color:#888; margin-bottom:8px; }
+
+.toggle-wrap { display:flex; align-items:center; gap:10px; padding:10px 14px; background:#f8f9fa; border-radius:8px; border:1px solid #eee; }
+.toggle { width:40px; height:22px; border-radius:11px; position:relative; flex-shrink:0; }
+.toggle.on  { background:#1a73e8; }
+.toggle.off { background:#bbb; }
+.toggle-knob { width:18px; height:18px; border-radius:50%; background:#fff; position:absolute; top:2px; box-shadow:0 1px 3px rgba(0,0,0,0.3); }
+.toggle.on  .toggle-knob { right:2px; }
+.toggle.off .toggle-knob { left:2px; }
+.toggle-label { font-size:12px; color:#333; }
+
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.trouble-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.tr-card { border-radius:8px; padding:14px; }
+.tr-card.prob { background:#fff3e0; border-left:3px solid #e65100; }
+.tr-card.sol  { background:#e8f5e9; border-left:3px solid #2e7d32; }
+.tr-card h4 { font-size:12px; font-weight:700; margin-bottom:6px; }
+.tr-card.prob h4 { color:#bf360c; }
+.tr-card.sol  h4 { color:#1b5e20; }
+.tr-card p { font-size:12px; color:#444; line-height:1.6; }
+
+@media print {
+  body { background:#fff; }
+  .cover, .slide { box-shadow:none; margin:0; border-radius:0; }
+  .cover { break-inside:avoid; page-break-inside:avoid; }
+  .slide { break-before:page; page-break-before:always; break-inside:avoid; page-break-inside:avoid; margin-bottom:0 !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- Cover -->
+<div class="cover">
+  <div class="cover-left">
+    <div class="cover-icon">⚙️</div>
+    <div class="mbadge">🔑 Passkey — Password Skip Enable</div>
+    <div class="mbadge">👤 Google Admin Console Operation</div>
+  </div>
+  <div class="cover-right">
+    <div class="cover-tag">IT Admin Guide</div>
+    <h1>Google Admin Console<br>Passkey Setup Guide</h1>
+    <div class="cover-sub">Issued by: IT Division, Corporate IT Team　｜　March 26, 2026</div>
+    <div class="cover-desc">
+      This guide explains how to enable <strong>passkey password skip</strong> in the Google Admin Console.<br>
+      Once configured, employees can sign in to Google <strong>without a password</strong> using a passkey (fingerprint, face recognition, or PIN).
+    </div>
+    <div class="time-bar">
+      <div class="tb-title">⏱ Estimated Time (Total: approx. 10–15 min)</div>
+      <div class="time-steps">
+        <div class="ts"><div class="ts-step">Pre-check</div><div class="ts-min">2 min</div><div class="ts-label">Permissions</div></div>
+        <div class="ts"><div class="ts-step">Step 1</div><div class="ts-min">3 min</div><div class="ts-label">Access Console</div></div>
+        <div class="ts"><div class="ts-step">Step 2</div><div class="ts-min">3 min</div><div class="ts-label">Change Setting</div></div>
+        <div class="ts"><div class="ts-step">Step 3</div><div class="ts-min">3 min</div><div class="ts-label">Verify</div></div>
+        <div class="ts"><div class="ts-step">Step 4</div><div class="ts-min">2 min</div><div class="ts-label">OU Config</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Pre-check -->
+<div class="slide">
+  <div class="slide-head blue"><div class="snum">📋</div><h2>Pre-Check: Before You Begin</h2></div>
+  <div class="slide-body">
+    <p style="font-size:13px;font-weight:700;color:#1a237e;margin-bottom:12px;">📌 Please confirm all of the following conditions are met</p>
+    <div class="two-col" style="margin-bottom:20px;">
+      <div style="background:#e8f5e9;border:2px solid #4caf50;border-radius:10px;padding:16px;">
+        <div style="font-size:14px;font-weight:800;color:#1b5e20;margin-bottom:10px;">✅ Required Permissions & Conditions</div>
+        <div class="step-item" style="margin-bottom:8px;"><div style="width:22px;height:22px;border-radius:50%;background:#4caf50;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">1</div><div style="font-size:13px;color:#333;margin-left:8px;">You are logged in with a <strong class="g">Google Workspace Super Admin</strong> account.</div></div>
+        <div class="step-item" style="margin-bottom:8px;"><div style="width:22px;height:22px;border-radius:50%;background:#4caf50;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">2</div><div style="font-size:13px;color:#333;margin-left:8px;">Your plan is <strong class="g">Google Workspace Business Starter or higher</strong>.</div></div>
+        <div class="step-item"><div style="width:22px;height:22px;border-radius:50%;background:#4caf50;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">3</div><div style="font-size:13px;color:#333;margin-left:8px;">Employees have already <strong class="g">set up passkeys</strong> on their devices (refer to the Windows Hello / Mac Passkey Setup Guide).</div></div>
+      </div>
+      <div>
+        <div class="danger-box">
+          ⚠️ <strong>[Important] Understand the scope of this change</strong><br><br>
+          Enabling this setting allows <strong>all users in the target Organizational Unit (OU) to sign in by skipping the password</strong>.<br><br>
+          Users who have not set up a passkey can still sign in with their password as usual.
+        </div>
+        <div class="info-box" style="margin-top:10px;">
+          💡 It is recommended to <strong>test with a specific OU first</strong> before rolling out company-wide.
+        </div>
+      </div>
+    </div>
+
+    <p style="font-size:13px;font-weight:700;color:#1a237e;margin-bottom:10px;">📌 What changes — and what doesn't</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div style="background:#e8f5e9;border-radius:8px;padding:14px;border:2px solid #4caf50;">
+        <div style="font-size:13px;font-weight:700;color:#1b5e20;margin-bottom:8px;">✅ What becomes possible after enabling</div>
+        <div style="font-size:12px;color:#333;line-height:1.9;">
+          · Sign in to Google without a password using a passkey<br>
+          · Launch Keeper via SSO without a password<br>
+          · Use a passkey instead of two-step verification
+        </div>
+      </div>
+      <div style="background:#fff3e0;border-radius:8px;padding:14px;border:2px solid #ff9800;">
+        <div style="font-size:13px;font-weight:700;color:#e65100;margin-bottom:8px;">⚠️ What stays the same</div>
+        <div style="font-size:12px;color:#333;line-height:1.9;">
+          · Users without a passkey can still sign in with their password<br>
+          · Existing passwords are not deleted<br>
+          · Admins can individually disable passkey sign-in
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 1 -->
+<div class="slide">
+  <div class="slide-head blue"><div class="snum">1</div><h2>Access the Google Admin Console</h2><div class="tag2">Approx. 3 min</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;font-weight:700;color:#1a237e;margin-bottom:10px;">📌 How to access the Admin Console</p>
+    <div class="flow-row" style="margin-bottom:20px;">
+      <div class="fl-box" style="width:200px;">
+        <div class="step-label">① Enter URL in browser</div>
+        <div style="background:#f5f5f5;border-radius:10px;overflow:hidden;border:1px solid #ccc;font-size:11px;">
+          <div style="background:linear-gradient(180deg,#e8e8e8,#d8d8d8);padding:6px 10px;display:flex;align-items:center;gap:6px;border-bottom:1px solid #bbb;">
+            <div style="flex:1;background:#fff;border-radius:16px;padding:3px 10px;font-size:10px;color:#1a73e8;font-weight:700;text-align:center;">admin.google.com</div>
+          </div>
+          <div style="background:#fff;padding:6px 10px;font-size:10px;color:#888;">← Type in address bar and press Enter</div>
+        </div>
+      </div>
+      <div class="fl-arr">→</div>
+      <div class="fl-box" style="width:200px;">
+        <div class="step-label">② Sign in as Super Admin</div>
+        <div style="background:#fff;border-radius:10px;border:1px solid #ddd;padding:14px;font-size:11px;text-align:center;">
+          <div style="font-size:22px;margin-bottom:6px;">G</div>
+          <div style="font-weight:700;margin-bottom:8px;">Sign in to Google</div>
+          <div style="background:#e8f0fe;border:1px solid #90b0f0;border-radius:6px;padding:6px 8px;display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+            <div style="width:20px;height:20px;border-radius:50%;background:#1a73e8;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:700;">A</div>
+            <div style="font-size:10px;text-align:left;"><div style="font-weight:700;">Admin Account</div><div style="color:#888;">admin@adventure-inc.co.jp</div></div>
+          </div>
+          <div style="background:#1a73e8;color:#fff;border-radius:5px;padding:5px;font-size:10px;font-weight:700;">Next</div>
+        </div>
+      </div>
+      <div class="fl-arr">→</div>
+      <div class="fl-box" style="flex:1;">
+        <div class="step-label">③ Admin Console home screen</div>
+        <div class="admin-mock">
+          <div class="admin-header">
+            <div style="font-size:16px;">G</div>
+            <div class="admin-logo">Google Admin Console</div>
+            <div style="margin-left:auto;font-size:10px;background:rgba(255,255,255,0.2);padding:2px 8px;border-radius:10px;">admin@adventure-inc.co.jp</div>
+          </div>
+          <div style="padding:10px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+            <div style="background:#f8f9fa;border-radius:6px;padding:10px;text-align:center;font-size:10px;"><div style="font-size:18px;margin-bottom:4px;">👤</div>Users</div>
+            <div style="background:#e8f0fe;border-radius:6px;padding:10px;text-align:center;font-size:10px;border:1px solid #90b0f0;"><div style="font-size:18px;margin-bottom:4px;">🔒</div><strong style="color:#1a73e8;">Security</strong></div>
+            <div style="background:#f8f9fa;border-radius:6px;padding:10px;text-align:center;font-size:10px;"><div style="font-size:18px;margin-bottom:4px;">📱</div>Devices</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="step-item"><div class="si-num blue">1</div><div class="si-text">Type <strong>admin.google.com</strong> in the browser address bar and press Enter.</div></div>
+      <div class="step-item"><div class="si-num blue">2</div><div class="si-text">Sign in with your <strong>Super Admin Google account</strong>.</div></div>
+      <div class="step-item"><div class="si-num blue">3</div><div class="si-text">Once the Admin Console home screen appears, click <strong>"Security"</strong>.</div></div>
+      <div class="info-box">
+        💡 If "Security" is not visible on the home screen, type <strong>"passkey"</strong> in the search bar to navigate directly to the settings page.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 2 -->
+<div class="slide">
+  <div class="slide-head blue"><div class="snum">2</div><h2>Enable Passkey Password Skip</h2><div class="tag2">Approx. 3 min</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;font-weight:700;color:#1a237e;margin-bottom:10px;">📌 Navigating to the Security settings and locating the passkey option</p>
+    <div class="flow-row" style="margin-bottom:16px;">
+      <div class="fl-box" style="width:190px;">
+        <div class="step-label">① Security → Authentication</div>
+        <div class="admin-mock">
+          <div class="admin-header"><div class="admin-logo">🔒 Security</div></div>
+          <div class="admin-body">
+            <div class="admin-side">
+              <div class="admin-side-item">📊 Overview</div>
+              <div class="admin-side-item">🔐 Login</div>
+              <div class="admin-side-item active">🔑 Authentication ←</div>
+              <div class="admin-side-item">📱 2-Step Verification</div>
+            </div>
+            <div class="admin-main" style="font-size:10px;color:#888;">Authentication settings...</div>
+          </div>
+        </div>
+      </div>
+      <div class="fl-arr">→</div>
+      <div class="fl-box" style="width:190px;">
+        <div class="step-label">② "Passkeys and security keys"</div>
+        <div class="admin-mock">
+          <div class="admin-header"><div class="admin-logo">🔑 Authentication</div></div>
+          <div class="admin-main" style="padding:8px;">
+            <div class="admin-row"><span>2-Step Verification</span><span class="admin-badge on">Enabled</span></div>
+            <div class="admin-row" style="background:#e8f0fe;border-radius:4px;padding:4px 0;"><span style="font-weight:700;color:#1a73e8;">🔑 Passkeys and security keys ←</span></div>
+            <div class="admin-row"><span>Password strength</span><span class="admin-badge inherit">Inherited</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="fl-arr">→</div>
+      <div class="fl-box" style="flex:1;">
+        <div class="step-label">③ Turn on "Skip password"</div>
+        <div class="admin-mock">
+          <div class="admin-header"><div class="admin-logo">🔑 Passkeys and security keys</div></div>
+          <div class="admin-main" style="padding:10px;">
+            <div class="admin-breadcrumb">Security ＞ Authentication ＞ Passkeys and security keys</div>
+            <div class="admin-section">
+              <div class="admin-section-title">Passkey settings</div>
+              <div style="margin-bottom:10px;">
+                <div style="font-size:12px;color:#333;margin-bottom:6px;">Skip password when using passkey</div>
+                <div class="toggle-wrap">
+                  <div class="toggle on"><div class="toggle-knob"></div></div>
+                  <div class="toggle-label"><strong style="color:#137333;">On</strong> ← Click here to enable</div>
+                </div>
+                <div style="font-size:11px;color:#888;margin-top:6px;padding-left:4px;">When enabled, users with a passkey set up can skip password entry.</div>
+              </div>
+              <div style="background:#e8f5e9;border-radius:6px;padding:8px;font-size:11px;color:#1b5e20;border:1px solid #4caf50;">✅ Settings saved</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="step-item"><div class="si-num blue">1</div><div class="si-text">From the left menu or home screen of the Admin Console, click <strong>"Security"</strong>.</div></div>
+      <div class="step-item"><div class="si-num blue">2</div><div class="si-text">Under the Security menu, click <strong>"Authentication" → "Passkeys and security keys"</strong>.</div></div>
+      <div class="step-item"><div class="si-num blue">3</div><div class="si-text">Click the toggle for <strong>"Skip password when using passkey"</strong> to turn it <strong style="color:#137333;">On</strong>.</div></div>
+      <div class="step-item"><div class="si-num blue">4</div><div class="si-text">If a confirmation dialog appears, click <strong>"Enable"</strong>.</div></div>
+      <div class="step-item"><div class="si-num blue">5</div><div class="si-text">Click <strong>"Save"</strong> to confirm the setting.</div></div>
+      <div class="success-box">✅ You are done when the toggle turns <strong>blue (On)</strong> and "Settings saved" is displayed.</div>
+      <div class="warn-box">⚠️ It may take <strong>up to 24 hours</strong> for the setting to take effect. If it doesn't appear to work during testing, please wait and try again.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 3 -->
+<div class="slide">
+  <div class="slide-head blue"><div class="snum">3</div><h2>Configure per Organizational Unit (OU) — Recommended</h2><div class="tag2">Optional · Recommended</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;color:#444;margin-bottom:14px;">Use these steps to <strong>roll out to specific departments first</strong> instead of all users at once.</p>
+
+    <div class="flow-row" style="margin-bottom:16px;">
+      <div class="fl-box" style="width:200px;">
+        <div class="step-label">① Select an OU</div>
+        <div class="admin-mock">
+          <div class="admin-header"><div class="admin-logo">🔑 Passkeys and security keys</div></div>
+          <div class="admin-main" style="padding:8px;">
+            <div style="font-size:11px;font-weight:700;color:#333;margin-bottom:6px;">Select organizational unit</div>
+            <div style="border:1px solid #eee;border-radius:6px;overflow:hidden;">
+              <div style="padding:5px 8px;font-size:10px;color:#555;background:#f8f9fa;border-bottom:1px solid #eee;">🏢 adventure-inc.co.jp</div>
+              <div style="padding:5px 8px 5px 20px;font-size:10px;color:#555;border-bottom:1px solid #eee;">📁 Sales</div>
+              <div style="padding:5px 8px 5px 20px;font-size:10px;background:#e8f0fe;color:#1a73e8;font-weight:700;border-bottom:1px solid #eee;">📁 IT Team ← Select</div>
+              <div style="padding:5px 8px 5px 20px;font-size:10px;color:#555;">📁 Admin</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="fl-arr">→</div>
+      <div class="fl-box" style="flex:1;">
+        <div class="step-label">② Select "Override" and enable the toggle for this OU</div>
+        <div class="admin-mock">
+          <div class="admin-header"><div class="admin-logo">🔑 Passkeys and security keys (IT Team)</div></div>
+          <div class="admin-main" style="padding:10px;">
+            <div style="background:#fff3e0;border-radius:6px;padding:8px;font-size:11px;color:#e65100;margin-bottom:10px;border:1px solid #ff9800;">📌 Current setting: Inherited from parent (Off)</div>
+            <div style="font-size:12px;color:#333;margin-bottom:8px;">Select how to apply to this OU:</div>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
+              <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;background:#f8f9fa;border:1px solid #eee;">
+                <div style="width:14px;height:14px;border-radius:50%;border:2px solid #bbb;"></div>
+                <div style="font-size:11px;color:#555;">Inherit (follow parent organization setting)</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;background:#e8f0fe;border:1px solid #1a73e8;">
+                <div style="width:14px;height:14px;border-radius:50%;border:2px solid #1a73e8;background:#1a73e8;display:flex;align-items:center;justify-content:center;"><div style="width:6px;height:6px;border-radius:50%;background:#fff;"></div></div>
+                <div style="font-size:11px;color:#1a73e8;font-weight:700;">Override ← Select this</div>
+              </div>
+            </div>
+            <div class="toggle-wrap">
+              <div class="toggle on"><div class="toggle-knob"></div></div>
+              <div class="toggle-label"><strong style="color:#137333;">On</strong> (enabled for this OU only)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="step-item"><div class="si-num blue">1</div><div class="si-text">From the <strong>Organizational Unit (OU) tree</strong> on the left side of the "Passkeys and security keys" screen, select the OU you want to roll out to first.</div></div>
+      <div class="step-item"><div class="si-num blue">2</div><div class="si-text">Change the apply method to <strong>"Override"</strong>.</div></div>
+      <div class="step-item"><div class="si-num blue">3</div><div class="si-text">Turn the toggle <strong>On</strong> and click <strong>"Save"</strong>.</div></div>
+      <div class="tip-box">
+        💡 <strong>Recommended rollout order:</strong><br>
+        ① IT Team only (pilot) → ② Company-wide if no issues<br>
+        Per-OU configuration allows you to quickly revert a specific department if a problem arises.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 4 -->
+<div class="slide">
+  <div class="slide-head green"><div class="snum">4</div><h2>Verify the Setup</h2><div class="tag2">Approx. 3 min</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;font-weight:700;color:#1b5e20;margin-bottom:12px;">📌 Always verify operation using the following steps after configuration</p>
+
+    <div class="two-col" style="margin-bottom:16px;">
+      <div style="background:#f0f4ff;border-radius:10px;padding:16px;border:2px solid #90b0f0;">
+        <div style="font-size:13px;font-weight:700;color:#0d47a1;margin-bottom:10px;">📌 How to verify as the admin</div>
+        <div class="step-item"><div class="si-num blue">1</div><div class="si-text" style="font-size:12px;">Open an Incognito window (<code>Ctrl+Shift+N</code>)</div></div>
+        <div class="step-item"><div class="si-num blue">2</div><div class="si-text" style="font-size:12px;">Go to <strong>accounts.google.com</strong> and enter the email address of a test account with a passkey configured</div></div>
+        <div class="step-item"><div class="si-num blue">3</div><div class="si-text" style="font-size:12px;">Confirm that "Verify your identity with a passkey" is displayed</div></div>
+        <div class="step-item"><div class="si-num blue">4</div><div class="si-text" style="font-size:12px;">Authenticate with a passkey (fingerprint, face, or PIN) and confirm sign-in succeeds</div></div>
+      </div>
+      <div>
+        <div style="background:#e8f5e9;border:2px solid #4caf50;border-radius:10px;padding:14px;margin-bottom:12px;">
+          <div style="font-size:13px;font-weight:700;color:#1b5e20;margin-bottom:8px;">✅ Checklist for normal operation</div>
+          <div style="font-size:12px;color:#333;line-height:1.9;">
+            ☑ Passkey authentication screen appears after entering email<br>
+            ☑ Password entry screen is not shown<br>
+            ☑ Sign-in completes via passkey authentication<br>
+            ☑ Google account page opens successfully
+          </div>
+        </div>
+        <div class="warn-box">
+          ⚠️ <strong>If the passkey authentication screen does not appear</strong><br>
+          It can take up to 24 hours for settings to propagate. Please check again the following day.
+        </div>
+      </div>
+    </div>
+
+    <div class="info-box">
+      💡 <strong>How to check passkey registration status for users in the Admin Console</strong><br>
+      Admin Console → Users → Select the target user → "Security" tab → Check the "Passkeys" section to see whether a passkey is registered and which device it is on.
+    </div>
+  </div>
+</div>
+
+<!-- Troubleshooting -->
+<div class="slide">
+  <div class="slide-head orange"><div class="snum">5</div><h2>Common Issues and Solutions</h2></div>
+  <div class="slide-body">
+    <div class="trouble-grid">
+      <div class="tr-card prob"><h4>🔍 Setting not found</h4><p>"Passkeys and security keys" menu is not visible</p></div>
+      <div class="tr-card sol">
+        <h4>✅ Solution</h4>
+        <p>Type "passkey" in the Admin Console search bar to navigate directly. Also confirm that your Google Workspace plan supports this feature (Business Starter or higher required).</p>
+      </div>
+
+      <div class="tr-card prob"><h4>🔒 Cannot change the setting</h4><p>The toggle is greyed out and cannot be clicked</p></div>
+      <div class="tr-card sol">
+        <h4>✅ Solution</h4>
+        <p>Check whether the currently logged-in account has Super Admin privileges. If not, ask a Super Admin to make the change.</p>
+      </div>
+
+      <div class="tr-card prob"><h4>⏱ No change after saving</h4><p>Passkey sign-in still not working for employees after enabling</p></div>
+      <div class="tr-card sol">
+        <h4>✅ Solution</h4>
+        <p>Settings can take up to 24 hours to propagate. Have employees clear their browser cache or try again in an Incognito window.</p>
+      </div>
+
+      <div class="tr-card prob"><h4>↩️ Want to revert the setting</h4><p>Need to disable passkey password skip</p></div>
+      <div class="tr-card sol">
+        <h4>✅ Solution</h4>
+        <p>Go to the same screen, toggle the setting to "Off", and click "Save". Users will then need to sign in with their password again.</p>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;background:#e8eaf6;border-radius:10px;padding:14px 18px;font-size:13px;">
+      ❓ If none of the above resolves your issue, please reach out via the Slack <strong>#keeper-support</strong> channel or contact the Corporate IT Team directly.
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
