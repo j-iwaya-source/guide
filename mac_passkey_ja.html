@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mac パスキー設定手順書</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Hiragino Sans','Yu Gothic',Arial,sans-serif; background:#f0f4f8; color:#1a1a2e; }
+.cover {
+  background: linear-gradient(135deg,#1b2838 0%,#2d3f55 50%,#1a5276 100%);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:48px 64px; gap:40px; margin-bottom:32px; position:relative; overflow:hidden;
+}
+.cover::before { content:''; position:absolute; inset:0;
+  background: radial-gradient(circle at 25% 50%, rgba(100,200,255,0.12) 0%, transparent 60%),
+              radial-gradient(circle at 75% 30%, rgba(50,150,255,0.08) 0%, transparent 50%); }
+.cover-left { flex:1; position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:14px; }
+.cover-icon { font-size:90px; filter:drop-shadow(0 0 24px rgba(100,200,255,0.5)); }
+.method-badges { display:flex; flex-direction:column; gap:8px; }
+.mbadge { background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.3); border-radius:16px; padding:5px 14px; font-size:12px; color:#fff; font-weight:700; text-align:center; }
+.cover-right { flex:1.3; position:relative; z-index:1; color:#fff; }
+.cover-tag { background:rgba(255,200,0,0.9); color:#1a1a2e; font-size:12px; font-weight:700; padding:4px 14px; border-radius:4px; display:inline-block; margin-bottom:14px; }
+.cover-right h1 { font-size:30px; font-weight:900; line-height:1.3; margin-bottom:12px; }
+.cover-right .cover-sub { font-size:12px; opacity:0.75; margin-bottom:16px; }
+.cover-desc { font-size:13px; line-height:1.8; background:rgba(255,255,255,0.1); border-radius:8px; padding:14px; border-left:3px solid #5dade2; margin-bottom:14px; }
+.cover-desc strong { color:#ffd700; }
+.time-bar { background:rgba(255,255,255,0.1); border-radius:8px; padding:10px 14px; border:1px solid rgba(255,255,255,0.2); }
+.tb-title { font-size:11px; font-weight:700; color:#ffd700; margin-bottom:6px; }
+.time-steps { display:flex; }
+.ts { flex:1; text-align:center; padding:5px 4px; border-right:1px solid rgba(255,255,255,0.2); }
+.ts:last-child { border-right:none; }
+.ts .ts-step { font-size:9px; opacity:0.7; }
+.ts .ts-min { font-size:13px; font-weight:900; color:#ffd700; }
+.ts .ts-label { font-size:9px; opacity:0.8; }
+.slide { background:#fff; margin:0 auto 28px; max-width:1000px; border-radius:16px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,0.10); }
+.slide-head { color:#fff; padding:18px 36px; display:flex; align-items:center; gap:14px; }
+.slide-head.blue   { background:linear-gradient(90deg,#1b2838,#1a5276); }
+.slide-head.green  { background:linear-gradient(90deg,#1b5e20,#2e7d32); }
+.slide-head.purple { background:linear-gradient(90deg,#4a148c,#7b1fa2); }
+.slide-head.orange { background:linear-gradient(90deg,#e65100,#f57c00); }
+.slide-head .snum { background:rgba(255,255,255,0.2); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:900; flex-shrink:0; }
+.slide-head h2 { font-size:21px; font-weight:800; }
+.slide-head .tag2 { margin-left:auto; background:rgba(255,200,0,0.9); color:#1a1a2e; font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; white-space:nowrap; }
+.slide-body { padding:30px 36px; }
+.warn-box    { background:#fff3e0; border:2px solid #ff9800; border-radius:8px; padding:11px 14px; font-size:13px; color:#7b3a00; margin-top:8px; }
+.info-box    { background:#e3f2fd; border:2px solid #1565c0; border-radius:8px; padding:11px 14px; font-size:13px; color:#0d47a1; margin-top:8px; }
+.success-box { background:#e8f5e9; border:2px solid #4caf50; border-radius:8px; padding:11px 14px; font-size:13px; color:#1b5e20; margin-top:8px; }
+.tip-box     { background:#f3e5f5; border:2px solid #9c27b0; border-radius:8px; padding:11px 14px; font-size:13px; color:#4a148c; margin-top:8px; }
+.step-item { display:flex; gap:12px; align-items:flex-start; margin-bottom:10px; }
+.si-num { color:#fff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:900; flex-shrink:0; margin-top:1px; }
+.si-num.blue   { background:linear-gradient(135deg,#1a5276,#1b2838); }
+.si-num.green  { background:linear-gradient(135deg,#2e7d32,#1b5e20); }
+.si-num.purple { background:linear-gradient(135deg,#7b1fa2,#4a148c); }
+.si-text { font-size:13px; line-height:1.7; color:#333; }
+.si-text strong       { color:#1a237e; background:#e8f0ff; padding:1px 5px; border-radius:3px; }
+.si-text strong.apple { color:#1b5e20; background:#e8f5e9; }
+.flow-row  { display:flex; align-items:flex-start; gap:6px; flex-wrap:nowrap; overflow-x:auto; }
+.fl-box    { flex:0 0 auto; }
+.fl-arr    { align-self:center; font-size:18px; color:#1565c0; font-weight:700; flex-shrink:0; padding:0 2px; }
+.step-label { font-size:10px; font-weight:700; color:#e65100; margin-bottom:4px; text-align:center; }
+.safari-mock { background:#f5f5f5; border-radius:10px; overflow:hidden; border:1px solid #ccc; font-size:11px; }
+.safari-bar  { background:linear-gradient(180deg,#e8e8e8,#d8d8d8); padding:6px 10px; display:flex; align-items:center; gap:6px; border-bottom:1px solid #bbb; }
+.safari-addr { flex:1; background:#fff; border-radius:16px; padding:3px 10px; font-size:10px; color:#555; text-align:center; border:1px solid #ccc; }
+.google-page  { background:#fff; border-radius:8px; border:1px solid #ddd; overflow:hidden; }
+.gp-header    { background:#fff; padding:8px 12px; border-bottom:1px solid #eee; display:flex; align-items:center; justify-content:space-between; }
+.gp-logo      { font-size:16px; font-weight:900; color:#4285f4; }
+.gp-avatar    { width:22px; height:22px; border-radius:50%; background:#7b1fa2; display:flex; align-items:center; justify-content:center; font-size:10px; color:#fff; font-weight:700; }
+.gp-body      { padding:10px; }
+.gp-nav       { display:flex; border-bottom:1px solid #eee; margin-bottom:8px; }
+.gp-nav-item  { padding:5px 10px; font-size:10px; color:#555; border-bottom:2px solid transparent; }
+.gp-nav-item.active { color:#1a73e8; border-bottom-color:#1a73e8; font-weight:700; }
+.gp-item      { display:flex; justify-content:space-between; align-items:center; padding:5px 8px; border-radius:4px; font-size:10px; }
+.gp-item.hl   { background:#e8f0fe; color:#1a73e8; font-weight:700; }
+.dialog       { background:#fff; border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,0.2); padding:20px; font-size:11px; border:1px solid #eee; }
+.dialog-icon  { font-size:32px; text-align:center; margin-bottom:8px; }
+.dialog-title { font-size:13px; font-weight:700; text-align:center; color:#333; margin-bottom:6px; }
+.dialog-body  { font-size:11px; color:#555; text-align:center; line-height:1.6; margin-bottom:12px; }
+.dialog-btns  { display:flex; gap:8px; justify-content:flex-end; }
+.dbtn         { padding:6px 14px; border-radius:6px; font-size:11px; font-weight:700; }
+.dbtn.primary   { background:#1a73e8; color:#fff; }
+.dbtn.secondary { background:#f5f5f5; color:#333; }
+.touchid-sensor { width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg,#a8d8a8,#4caf50); display:flex; align-items:center; justify-content:center; font-size:30px; margin:0 auto 8px; border:3px solid #4caf50; box-shadow:0 0 0 6px rgba(76,175,80,0.2); }
+.keychain-dialog { background:#fff; border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,0.2); padding:16px; font-size:11px; border:1px solid #eee; }
+.kc-icon  { font-size:28px; text-align:center; margin-bottom:6px; }
+.kc-title { font-size:12px; font-weight:700; text-align:center; color:#333; margin-bottom:4px; }
+.kc-body  { font-size:10px; color:#555; text-align:center; line-height:1.5; margin-bottom:10px; }
+.kc-option { display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:6px; border:1px solid #ddd; margin-bottom:6px; }
+.kc-option.selected { background:#e8f0fe; border-color:#1a73e8; }
+.kc-option-icon { font-size:16px; }
+.kc-option-text { font-size:10px; color:#333; }
+.kc-option-text strong { display:block; font-weight:700; }
+.complete-screen { background:#fff; border-radius:8px; border:1px solid #ddd; padding:14px; text-align:center; }
+.cs-passkey  { background:#f0f4ff; border-radius:6px; padding:8px; display:flex; align-items:center; gap:8px; text-align:left; border:1px solid #90b0f0; margin-top:8px; }
+.cs-pk-icon  { font-size:20px; }
+.cs-pk-name  { font-weight:700; color:#0d47a1; font-size:10px; }
+.cs-pk-device { color:#888; font-size:9px; }
+.login-flow { display:flex; align-items:center; gap:10px; }
+.lf-step    { flex:1; background:#f8f9ff; border-radius:10px; padding:12px; text-align:center; border:2px solid #90b0f0; }
+.lf-icon    { font-size:28px; margin-bottom:6px; }
+.lf-title   { font-size:11px; font-weight:700; color:#0d47a1; margin-bottom:4px; }
+.lf-desc    { font-size:10px; color:#555; line-height:1.5; }
+.lf-arr     { font-size:20px; color:#1565c0; font-weight:700; flex-shrink:0; }
+.trouble-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.tr-card      { border-radius:8px; padding:14px; }
+.tr-card.prob { background:#fff3e0; border-left:3px solid #e65100; }
+.tr-card.sol  { background:#e8f5e9; border-left:3px solid #2e7d32; }
+.tr-card h4   { font-size:12px; font-weight:700; margin-bottom:6px; }
+.tr-card.prob h4 { color:#bf360c; }
+.tr-card.sol  h4 { color:#1b5e20; }
+.tr-card p    { font-size:12px; color:#444; line-height:1.6; }
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+@media print {
+  body { background:#fff; }
+  .cover, .slide { box-shadow:none; margin:0; border-radius:0; }
+  .cover { break-inside:avoid; }
+  .slide { break-before:page; break-inside:avoid; margin-bottom:0 !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- 表紙 -->
+<div class="cover">
+  <div class="cover-left">
+    <div class="cover-icon">🍎</div>
+    <div class="method-badges">
+      <div class="mbadge">👆 Touch ID（指紋認証）</div>
+      <div class="mbadge">☁️ iCloud Keychain 同期</div>
+    </div>
+  </div>
+  <div class="cover-right">
+    <div class="cover-tag">社内向け手順書</div>
+    <h1>Mac パスキー設定手順書<br>（Google Workspace）</h1>
+    <div class="cover-sub">発行：コーポレートIT課　｜　2026年3月26日</div>
+    <div class="cover-desc">
+      本手順書では、MacでGoogleアカウントに<strong>パスキーを設定する方法</strong>を説明します。<br>
+      設定後は<strong>Touch IDだけでGoogleにサインイン</strong>できるようになります（パスワード不要）。
+    </div>
+    <div class="time-bar">
+      <div class="tb-title">⏱ 作業の目安時間（合計：約5〜8分）</div>
+      <div class="time-steps">
+        <div class="ts"><div class="ts-step">事前確認</div><div class="ts-min">1分</div><div class="ts-label">要件確認</div></div>
+        <div class="ts"><div class="ts-step">Step 1</div><div class="ts-min">1分</div><div class="ts-label">ページを開く</div></div>
+        <div class="ts"><div class="ts-step">Step 2</div><div class="ts-min">1分</div><div class="ts-label">作成</div></div>
+        <div class="ts"><div class="ts-step">Step 3</div><div class="ts-min">1分</div><div class="ts-label">保存先選択</div></div>
+        <div class="ts"><div class="ts-step">Step 4</div><div class="ts-min">1分</div><div class="ts-label">Touch ID</div></div>
+        <div class="ts"><div class="ts-step">確認</div><div class="ts-min">1分</div><div class="ts-label">動作確認</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 事前確認 -->
+<div class="slide">
+  <div class="slide-head blue"><div class="snum">📋</div><h2>事前確認：始める前に確認すること</h2></div>
+  <div class="slide-body">
+    <p style="font-size:13px;font-weight:700;color:#1a237e;margin-bottom:12px;">📌 以下の条件をすべて満たしていることを確認してください</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+      <div style="background:#e8f5e9;border:2px solid #4caf50;border-radius:10px;padding:16px;">
+        <div style="font-size:14px;font-weight:800;color:#1b5e20;margin-bottom:10px;">✅ 必要な条件</div>
+        <div class="step-item" style="margin-bottom:8px;"><div style="width:22px;height:22px;border-radius:50%;background:#4caf50;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">1</div><div style="font-size:13px;color:#333;margin-left:8px;"><strong class="apple">macOS Ventura 13.5以降</strong>（iCloud Keychainに必要）</div></div>
+        <div class="step-item" style="margin-bottom:8px;"><div style="width:22px;height:22px;border-radius:50%;background:#4caf50;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">2</div><div style="font-size:13px;color:#333;margin-left:8px;"><strong class="apple">Touch ID</strong>が使用可能で、指紋が登録済みであること</div></div>
+        <div class="step-item" style="margin-bottom:8px;"><div style="width:22px;height:22px;border-radius:50%;background:#4caf50;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">3</div><div style="font-size:13px;color:#333;margin-left:8px;"><strong class="apple">ChromeまたはSafari</strong>が最新バージョンであること</div></div>
+        <div class="step-item"><div style="width:22px;height:22px;border-radius:50%;background:#4caf50;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">4</div><div style="font-size:13px;color:#333;margin-left:8px;">会社のGoogleアカウントで<strong class="apple">サインイン済み</strong>であること</div></div>
+      </div>
+      <div>
+        <p style="font-size:12px;font-weight:700;color:#555;margin-bottom:8px;">📌 Touch IDの場所（MacBook）</p>
+        <div style="background:#f5f5f5;border-radius:10px;padding:14px;border:1px solid #ddd;text-align:center;margin-bottom:12px;">
+          <div style="background:linear-gradient(135deg,#2d3436,#1a1a2e);border-radius:8px;padding:12px;display:inline-block;width:180px;">
+            <div style="display:flex;justify-content:flex-end;gap:6px;margin-bottom:8px;">
+              <div style="background:#333;border-radius:3px;padding:3px 8px;font-size:8px;color:#aaa;">Fn</div>
+              <div style="background:#e0e0e0;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#333;font-weight:700;border:2px solid #ffd700;">👆</div>
+            </div>
+            <div style="background:#555;height:4px;border-radius:2px;margin-bottom:4px;"></div>
+            <div style="font-size:9px;color:#aaa;text-align:right;">Touch IDボタン ↑</div>
+          </div>
+          <div style="font-size:11px;color:#555;margin-top:8px;">キーボード右上のボタンがTouch IDです</div>
+        </div>
+        <div class="warn-box">
+          ⚠️ <strong>Touch IDがまだ設定されていない場合：</strong><br>
+          システム設定 → Touch IDとパスコード → 「指紋を追加」から先に登録してください。
+        </div>
+        <div class="warn-box" style="margin-top:8px;">
+          ⚠️ <strong>Touch IDがないMacをお使いの場合：</strong><br>
+          Mac mini・一部のiMacなどはTouch IDボタンがありません。<strong>Touch ID搭載のApple Magic Keyboard</strong>を接続するか、引き続きパスワードでサインインしてSlack <strong>#keeper-support</strong> までご連絡ください。個別に対応します。
+        </div>
+      </div>
+    </div>
+    <div style="background:#f3e5f5;border:2px solid #9c27b0;border-radius:10px;padding:14px;">
+      <p style="font-size:13px;font-weight:800;color:#4a148c;margin-bottom:8px;">☁️ パスキーはどこに保存されますか？（重要）</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div style="background:#fff;border-radius:8px;padding:10px;border:1px solid #ce93d8;">
+          <div style="font-size:12px;font-weight:700;color:#4a148c;margin-bottom:4px;">☁️ iCloud Keychain（推奨）</div>
+          <div style="font-size:11px;color:#444;line-height:1.6;">iCloudに保存され、iPhone・iPad・他のMacに自動同期。このMacを紛失しても他のAppleデバイスからサインインできます。</div>
+        </div>
+        <div style="background:#fff;border-radius:8px;padding:10px;border:1px solid #ce93d8;">
+          <div style="font-size:12px;font-weight:700;color:#555;margin-bottom:4px;">🌐 Chromeプロファイル</div>
+          <div style="font-size:11px;color:#444;line-height:1.6;">このMacのChromeにのみ保存。他のブラウザやデバイスには同期されません。</div>
+        </div>
+      </div>
+      <div class="tip-box" style="margin-top:8px;">💡 本手順書では<strong>iCloud Keychain（推奨）</strong>を使用します。</div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 1 -->
+<div class="slide">
+  <div class="slide-head blue"><div class="snum">1</div><h2>パスキー設定ページを開く</h2><div class="tag2">約1分</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;font-weight:700;color:#1a237e;margin-bottom:10px;">📌 以下のいずれかの方法でGoogleのパスキー設定ページを開きます</p>
+    <div class="two-col" style="margin-bottom:16px;">
+      <div>
+        <p style="font-size:12px;font-weight:700;color:#e65100;margin-bottom:8px;">方法① URLを直接入力（最速）</p>
+        <div class="safari-mock">
+          <div class="safari-bar">
+            <div style="display:flex;gap:5px;">
+              <div style="width:10px;height:10px;border-radius:50%;background:#ff5f57;"></div>
+              <div style="width:10px;height:10px;border-radius:50%;background:#ffbd2e;"></div>
+              <div style="width:10px;height:10px;border-radius:50%;background:#28c940;"></div>
+            </div>
+            <div class="safari-addr" style="color:#1a73e8;font-weight:700;">myaccount.google.com/signinoptions/passkeys</div>
+          </div>
+          <div style="background:#fff;padding:6px 10px;font-size:10px;color:#888;">← アドレスバーに入力してEnter</div>
+        </div>
+        <div style="background:#e8f0ff;border-radius:6px;padding:8px 12px;font-size:12px;color:#0d47a1;font-weight:700;margin-top:6px;font-family:monospace;">myaccount.google.com/signinoptions/passkeys</div>
+      </div>
+      <div>
+        <p style="font-size:12px;font-weight:700;color:#e65100;margin-bottom:8px;">方法② Googleアカウント設定から移動</p>
+        <div class="flow-row">
+          <div class="fl-box" style="width:130px;">
+            <div class="step-label">① myaccount.google.com</div>
+            <div class="google-page">
+              <div class="gp-header"><div class="gp-logo">Google</div><div class="gp-avatar">J</div></div>
+              <div class="gp-body">
+                <div class="gp-nav">
+                  <div class="gp-nav-item">ホーム</div>
+                  <div class="gp-nav-item active">セキュリティ</div>
+                </div>
+                <div class="gp-item hl">🔑 パスキーとセキュリティキー ›</div>
+              </div>
+            </div>
+          </div>
+          <div class="fl-arr">→</div>
+          <div class="fl-box" style="flex:1;">
+            <div class="step-label">② パスキーページが開く</div>
+            <div class="google-page">
+              <div class="gp-body">
+                <div style="font-size:12px;font-weight:700;color:#333;margin-bottom:8px;">パスキーとセキュリティキー</div>
+                <div style="background:#e8f0fe;border-radius:6px;padding:8px;display:flex;justify-content:space-between;align-items:center;">
+                  <div style="font-size:11px;font-weight:700;color:#1a73e8;">＋ パスキーを作成</div>
+                  <div style="font-size:11px;color:#1a73e8;">← ここをクリック</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="info-box">
+      💡 会社のGoogleアカウントにサインインしていない場合は、先にサインインしてからパスキー設定ページに戻ってください。
+    </div>
+  </div>
+</div>
+
+<!-- Step 2 -->
+<div class="slide">
+  <div class="slide-head blue"><div class="snum">2</div><h2>「パスキーを作成」をクリック</h2><div class="tag2">約1分</div></div>
+  <div class="slide-body">
+    <div class="flow-row" style="margin-bottom:16px;">
+      <div class="fl-box" style="width:200px;">
+        <div class="step-label">① パスキー設定ページ</div>
+        <div class="google-page">
+          <div class="gp-header"><div class="gp-logo">Google</div><div class="gp-avatar">J</div></div>
+          <div class="gp-body">
+            <div style="font-size:11px;font-weight:700;color:#333;margin-bottom:6px;">パスキーとセキュリティキー</div>
+            <div style="font-size:10px;color:#555;margin-bottom:8px;">パスキーを使ってパスワードなしでサインイン</div>
+            <div style="background:#1a73e8;color:#fff;border-radius:4px;padding:5px 10px;font-size:11px;font-weight:700;text-align:center;">＋ パスキーを作成 ←</div>
+          </div>
+        </div>
+      </div>
+      <div class="fl-arr">→</div>
+      <div class="fl-box" style="width:200px;">
+        <div class="step-label">② 説明ダイアログ</div>
+        <div class="dialog">
+          <div class="dialog-icon">🔑</div>
+          <div class="dialog-title">パスキーを作成しますか？</div>
+          <div class="dialog-body">Touch IDまたは画面ロックを使ってGoogleアカウントにサインインできるようになります。</div>
+          <div class="dialog-btns">
+            <div class="dbtn secondary">キャンセル</div>
+            <div class="dbtn primary">次へ ←</div>
+          </div>
+        </div>
+      </div>
+      <div class="fl-arr">→</div>
+      <div class="fl-box" style="flex:1;">
+        <div class="step-label">③ デバイス確認ダイアログ</div>
+        <div class="dialog">
+          <div class="dialog-icon">💻</div>
+          <div class="dialog-title">このデバイスにパスキーを作成</div>
+          <div class="dialog-body">このMacのTouch IDで保護され、iCloud経由で他のAppleデバイスに同期されます。</div>
+          <div style="background:#e8f5e9;border-radius:6px;padding:6px 10px;font-size:10px;color:#1b5e20;font-weight:700;margin-bottom:10px;text-align:center;">✅ このデバイスを使用</div>
+          <div class="dialog-btns">
+            <div class="dbtn secondary">別のデバイスを使用</div>
+            <div class="dbtn primary">続行 ←</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="step-item"><div class="si-num blue">1</div><div class="si-text">パスキー設定ページで<strong>「＋ パスキーを作成」</strong>をクリックします。</div></div>
+      <div class="step-item"><div class="si-num blue">2</div><div class="si-text">説明ダイアログを確認し、<strong>「次へ」</strong>をクリックします。</div></div>
+      <div class="step-item"><div class="si-num blue">3</div><div class="si-text">デバイス確認ダイアログが表示されたら、<strong>「続行」</strong>をクリックします。</div></div>
+      <div class="info-box">
+        💡 「このデバイスにパスキーを作成」と表示されていれば、そのまま<strong>「続行」</strong>をクリックしてください。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 3 -->
+<div class="slide">
+  <div class="slide-head purple"><div class="snum">3</div><h2>パスキーの保存先を選ぶ</h2><div class="tag2">約1分</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;color:#444;margin-bottom:14px;">Chromeを使用している場合のみ、パスキーの保存先を選ぶダイアログが表示されます。<strong>Safariをお使いの場合はこの画面は表示されず、自動的にiCloud Keychainに保存されるのでStep 4へ進んでください。</strong></p>
+    <div class="two-col" style="margin-bottom:16px;">
+      <div>
+        <div class="step-label" style="text-align:left;font-size:12px;margin-bottom:8px;">📌 保存先選択ダイアログ（Chrome使用時のみ）</div>
+        <div class="keychain-dialog">
+          <div class="kc-icon">☁️</div>
+          <div class="kc-title">パスキーをどこに保存しますか？</div>
+          <div class="kc-body">作成するパスキーの保存先を選択してください。</div>
+          <div class="kc-option selected">
+            <div class="kc-option-icon">☁️</div>
+            <div class="kc-option-text"><strong>iCloud Keychain（推奨）</strong>すべてのAppleデバイスに同期</div>
+            <div style="margin-left:auto;width:14px;height:14px;border-radius:50%;background:#1a73e8;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;">✓</div>
+          </div>
+          <div class="kc-option">
+            <div class="kc-option-icon">🌐</div>
+            <div class="kc-option-text"><strong>Chromeプロファイル</strong>このMacのChromeのみで使用可能</div>
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px;">
+            <div class="dbtn secondary" style="font-size:10px;padding:4px 10px;">キャンセル</div>
+            <div class="dbtn primary" style="font-size:10px;padding:4px 10px;">続行 ←</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="background:#f3e5f5;border:2px solid #9c27b0;border-radius:10px;padding:14px;">
+          <div style="font-size:13px;font-weight:800;color:#4a148c;margin-bottom:8px;">☁️ iCloud Keychainを選ぶ理由</div>
+          <div style="font-size:12px;color:#333;line-height:1.9;">
+            ✅ iPhone・iPad・他のMacに自動同期<br>
+            ✅ このMacを紛失しても使い続けられる<br>
+            ✅ SafariとChromeの両方で使える<br>
+            ✅ Appleの暗号化で保護される
+          </div>
+        </div>
+        <div class="step-item"><div class="si-num purple">1</div><div class="si-text"><strong>「iCloud Keychain」</strong>を選択します（推奨）。</div></div>
+        <div class="step-item"><div class="si-num purple">2</div><div class="si-text"><strong>「続行」</strong>をクリックしてTouch ID認証へ進みます。</div></div>
+        <div class="warn-box">
+          ⚠️ <strong>「iCloud Keychainが設定されていません」と表示された場合：</strong><br>
+          システム設定 → Apple ID → iCloud → 「パスワードとキーチェーン」をオンにしてから再試行してください。
+        </div>
+      </div>
+    </div>
+    <div class="info-box">
+      💡 <strong>Safariをご利用の場合：</strong> 保存先選択ダイアログは表示されず、自動的にiCloud Keychainに保存されます。Step 4へ進んでください。
+    </div>
+  </div>
+</div>
+
+<!-- Step 4 -->
+<div class="slide">
+  <div class="slide-head green"><div class="snum">4</div><h2>Touch IDで認証してパスキーを作成</h2><div class="tag2">約30秒</div></div>
+  <div class="slide-body">
+    <div style="display:grid;grid-template-columns:220px 1fr;gap:28px;align-items:start;">
+      <div style="display:flex;flex-direction:column;gap:12px;align-items:center;">
+        <div style="background:#fff;border-radius:12px;border:1px solid #ddd;padding:16px;box-shadow:0 4px 12px rgba(0,0,0,0.1);width:100%;text-align:center;">
+          <div style="font-size:12px;font-weight:700;color:#333;margin-bottom:10px;">Touch IDを使用</div>
+          <div class="touchid-sensor">👆</div>
+          <div style="font-size:11px;color:#2e7d32;font-weight:700;margin-top:8px;">Touch IDボタンに指を置いてください</div>
+          <div style="font-size:9px;color:#888;margin-top:4px;">j-iwaya@adventure-inc.co.jp</div>
+        </div>
+        <div style="background:#e8f5e9;border-radius:8px;padding:10px;border:2px solid #4caf50;width:100%;text-align:center;">
+          <div style="font-size:24px;margin-bottom:4px;">✅</div>
+          <div style="font-size:11px;font-weight:700;color:#1b5e20;">認証完了！パスキーが作成されました。</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="step-item"><div class="si-num green">1</div><div class="si-text">Touch IDのプロンプトが表示されたら、<strong class="apple">キーボード右上のTouch IDボタンに指を置きます。</strong></div></div>
+        <div class="step-item"><div class="si-num green">2</div><div class="si-text">指紋が認識されると、<strong class="apple">数秒でパスキーが自動的に作成</strong>されます。</div></div>
+        <div class="step-item"><div class="si-num green">3</div><div class="si-text">「パスキーが保存されました」と表示されれば完了です。</div></div>
+        <div class="complete-screen">
+          <div style="font-size:40px;margin-bottom:8px;">🎉</div>
+          <div style="font-size:13px;font-weight:700;color:#1b5e20;margin-bottom:6px;">パスキーが作成されました！</div>
+          <div style="font-size:11px;color:#555;line-height:1.6;margin-bottom:8px;">これでTouch IDだけでGoogleにサインインできます（パスワード不要）。</div>
+          <div class="cs-passkey">
+            <div class="cs-pk-icon">🔑</div>
+            <div>
+              <div class="cs-pk-name">MacBook Pro - Touch ID</div>
+              <div class="cs-pk-device">iCloud Keychainに保存 · 作成日：2026年3月26日</div>
+            </div>
+          </div>
+        </div>
+        <div class="tip-box">
+          💡 <strong>パスキーの名前を変更するには：</strong><br>
+          完了画面で鉛筆アイコン ✏️ をクリックすると、わかりやすい名前（例：「会社用MacBook」）に変更できます。複数のデバイスがある場合に便利です。
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 5 -->
+<div class="slide">
+  <div class="slide-head green"><div class="snum">5</div><h2>動作確認：パスキーでサインインしてみよう</h2><div class="tag2">約1分</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;color:#444;margin-bottom:14px;">設定後、パスキーが正しく動作するか確認しましょう。</p>
+    <p style="font-size:13px;font-weight:700;color:#1b5e20;margin-bottom:10px;">📌 パスキーでのサインイン体験（パスワード不要！）</p>
+    <div class="login-flow" style="margin-bottom:20px;">
+      <div class="lf-step">
+        <div class="lf-icon">🌐</div>
+        <div class="lf-title">① Googleへアクセス</div>
+        <div class="lf-desc">accounts.google.comを開き、メールアドレスを入力</div>
+      </div>
+      <div class="lf-arr">→</div>
+      <div class="lf-step">
+        <div class="lf-icon">🔑</div>
+        <div class="lf-title">② パスキー認証画面</div>
+        <div class="lf-desc">「パスキーを使って本人確認を行います」と表示</div>
+      </div>
+      <div class="lf-arr">→</div>
+      <div class="lf-step">
+        <div class="lf-icon">👆</div>
+        <div class="lf-title">③ Touch ID</div>
+        <div class="lf-desc">指を置くだけ！パスワード不要！</div>
+      </div>
+      <div class="lf-arr">→</div>
+      <div class="lf-step" style="background:#e8f5e9;border-color:#4caf50;">
+        <div class="lf-icon">✅</div>
+        <div class="lf-title" style="color:#1b5e20;">④ サインイン完了！</div>
+        <div class="lf-desc">即座に、安全にサインイン完了</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div style="background:#f0f4ff;border-radius:10px;padding:16px;border:2px solid #90b0f0;">
+        <div style="font-size:13px;font-weight:700;color:#0d47a1;margin-bottom:10px;">📌 確認手順</div>
+        <div class="step-item"><div class="si-num blue">1</div><div class="si-text" style="font-size:12px;">一度Googleからサインアウトします（Googleのページ右上のアカウントアイコン → 「サインアウト」をクリック）。</div></div>
+        <div class="step-item"><div class="si-num blue">2</div><div class="si-text" style="font-size:12px;"><strong>accounts.google.com</strong> にアクセスし、会社のメールアドレスを入力します。</div></div>
+        <div class="step-item"><div class="si-num blue">3</div><div class="si-text" style="font-size:12px;">「パスキーを使って本人確認を行います」と表示されたら<strong>「次へ」</strong>をクリック。</div></div>
+        <div class="step-item"><div class="si-num blue">4</div><div class="si-text" style="font-size:12px;">Touch IDに指を置き、サインインできることを確認します。</div></div>
+      </div>
+      <div>
+        <div style="background:#e8f5e9;border:2px solid #4caf50;border-radius:10px;padding:14px;margin-bottom:12px;">
+          <div style="font-size:13px;font-weight:700;color:#1b5e20;margin-bottom:8px;">✅ 正常動作のチェックリスト</div>
+          <div style="font-size:12px;color:#333;line-height:1.9;">
+            ☑ パスワードを入力せずにサインインできた<br>
+            ☑ Touch ID認証が完了した<br>
+            ☑ Googleアカウントのページが開いた
+          </div>
+        </div>
+        <div class="warn-box">
+          ⚠️ <strong>「パスキーが使用できません」と表示された場合：</strong><br>
+          管理者がまだパスワードスキップを有効化していない可能性があります。Slack <strong>#keeper-support</strong> までご連絡ください。
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- トラブルシューティング -->
+<div class="slide">
+  <div class="slide-head orange"><div class="snum">6</div><h2>トラブルシューティング — よくある問題と対処法</h2></div>
+  <div class="slide-body">
+    <div class="trouble-grid">
+      <div class="tr-card prob"><h4>💻 Touch IDがないMacを使っている</h4><p>Mac mini・一部のiMac・外付けキーボードなどでTouch IDが使えない</p></div>
+      <div class="tr-card sol"><h4>✅ 対処法</h4><p>以下の2つの方法があります。① <strong>Macのログインパスワード</strong>で代替認証する（パスワードレスにはなりません）。② <strong>Touch ID搭載のApple Magic Keyboard</strong>を接続して指紋認証を使えるようにする。どちらも難しい場合は引き続きパスワードでサインインし、Slack <strong>#keeper-support</strong> へご連絡ください。個別に対応します。</p></div>
+
+      <div class="tr-card prob"><h4>😕 Touch IDが反応しない</h4><p>Touch IDボタンを押しても指紋が認識されない</p></div>
+      <div class="tr-card sol"><h4>✅ 対処法</h4><p>システム設定 → Touch IDとパスコード → 指紋を削除して再登録してください。指が乾燥していたり汚れていたりすることが多い原因です。代わりにMacのログインパスワードで認証することもできます。</p></div>
+
+      <div class="tr-card prob"><h4>☁️ 「iCloud Keychainが設定されていません」</h4><p>iCloud Keychainへの保存時にこのメッセージが表示される</p></div>
+      <div class="tr-card sol"><h4>✅ 対処法</h4><p>システム設定 → Apple ID → iCloud → 「パスワードとキーチェーン」をオンにしてください。インターネット接続が必要です。有効化後に再度パスキーを作成してください。</p></div>
+
+      <div class="tr-card prob"><h4>🚫 「管理者がパスキーサインインを有効化していません」</h4><p>組織のポリシーによりパスキーが使用できない</p></div>
+      <div class="tr-card sol"><h4>✅ 対処法</h4><p>パスキーの作成自体は完了していますが、Google管理コンソール側でパスワードスキップがまだ有効化されていない状態です。現在ITチームが設定中のため、有効化されるまでは引き続きパスワードでサインインしてください。不明な場合はSlack <strong>#keeper-support</strong> までご連絡ください。</p></div>
+
+      <div class="tr-card prob"><h4>📱 他のAppleデバイスにパスキーが同期されない</h4><p>iPhoneやiPadにパスキーが表示されない</p></div>
+      <div class="tr-card sol"><h4>✅ 対処法</h4><p>すべてのデバイスで同じApple IDでサインインしているか確認してください。他のデバイス側：設定 → ［あなたの名前］→ iCloud →「パスワードとキーチェーン」がオンになっているか確認してください。</p></div>
+
+      <div class="tr-card prob"><h4>🔄 パスキーを削除して作り直したい</h4><p>パスキーをリセットまたは再作成したい</p></div>
+      <div class="tr-card sol"><h4>✅ 対処法</h4><p>myaccount.google.com/signinoptions/passkeys → パスキーの横にある削除アイコンをクリック → 同じ手順で新しいパスキーを作成してください。</p></div>
+
+      <div class="tr-card prob"><h4>💻 Macを紛失・交換した</h4><p>デバイス変更時にパスキーはどうなる？</p></div>
+      <div class="tr-card sol"><h4>✅ 対処法</h4><p>iCloud Keychainに保存していた場合、新しいMacに同じApple IDでサインインすると自動的に同期されます。旧デバイスのパスキーはGoogleアカウントの設定から削除してください。</p></div>
+    </div>
+    <div style="margin-top:16px;background:#e8eaf6;border-radius:10px;padding:14px 18px;font-size:13px;">
+      ❓ 上記で解決しない場合は Slack <strong>#keeper-support</strong> チャンネルまたはコーポレートIT課までお問い合わせください。
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
