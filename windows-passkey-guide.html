@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Windows Hello 設定手順書</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Hiragino Sans','Yu Gothic',Arial,sans-serif; background:#f0f4f8; color:#1a1a2e; }
+
+.cover {
+  background: linear-gradient(135deg,#1a237e 0%,#283593 50%,#1565c0 100%);
+  min-height:460px; display:flex; align-items:center; justify-content:space-between;
+  padding:48px 64px; gap:40px; margin-bottom:32px; position:relative; overflow:hidden;
+}
+.cover::before { content:''; position:absolute; inset:0;
+  background: radial-gradient(circle at 20% 50%, rgba(100,180,255,0.15) 0%, transparent 60%),
+              radial-gradient(circle at 80% 30%, rgba(50,100,255,0.1) 0%, transparent 50%); }
+.cover-left { flex:1; position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:16px; }
+.cover-icon { font-size:90px; filter:drop-shadow(0 0 24px rgba(100,180,255,0.6)); }
+.mbadge { background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.4); border-radius:16px; padding:5px 14px; font-size:12px; color:#fff; font-weight:700; text-align:center; margin-bottom:6px; }
+.cover-right { flex:1.4; position:relative; z-index:1; color:#fff; }
+.cover-tag { background:rgba(255,200,0,0.9); color:#1a1a2e; font-size:12px; font-weight:700; padding:4px 14px; border-radius:4px; display:inline-block; margin-bottom:14px; }
+.cover-right h1 { font-size:32px; font-weight:900; line-height:1.3; margin-bottom:14px; }
+.cover-right .cover-sub { font-size:12px; opacity:0.75; margin-bottom:16px; }
+.cover-desc { font-size:13px; line-height:1.8; background:rgba(255,255,255,0.1); border-radius:8px; padding:14px; border-left:3px solid #64b5f6; margin-bottom:14px; }
+.cover-desc strong { color:#ffd700; }
+.time-bar { background:rgba(255,255,255,0.1); border-radius:8px; padding:10px 14px; border:1px solid rgba(255,255,255,0.2); }
+.tb-title { font-size:11px; font-weight:700; color:#ffd700; margin-bottom:6px; }
+.time-steps { display:flex; }
+.ts { flex:1; text-align:center; padding:5px 2px; border-right:1px solid rgba(255,255,255,0.2); }
+.ts:last-child { border-right:none; }
+.ts .ts-step { font-size:9px; opacity:0.7; }
+.ts .ts-min { font-size:13px; font-weight:900; color:#ffd700; }
+.ts .ts-label { font-size:9px; opacity:0.8; }
+
+.slide { background:#fff; margin:0 auto 28px; max-width:1000px; border-radius:16px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,0.10); }
+.slide-head { color:#fff; padding:18px 36px; display:flex; align-items:center; gap:14px; }
+.slide-head.blue { background:linear-gradient(90deg,#1a237e,#1565c0); }
+.slide-head.purple { background:linear-gradient(90deg,#4a148c,#7b1fa2); }
+.slide-head.green { background:linear-gradient(90deg,#1b5e20,#2e7d32); }
+.slide-head.orange { background:linear-gradient(90deg,#e65100,#f57c00); }
+.slide-head.google { background:linear-gradient(90deg,#1a5276,#1565c0); }
+.slide-head .snum { background:rgba(255,255,255,0.2); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:900; flex-shrink:0; }
+.slide-head h2 { font-size:21px; font-weight:800; }
+.slide-head .tag2 { margin-left:auto; background:rgba(255,200,0,0.9); color:#1a1a2e; font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; white-space:nowrap; }
+.slide-body { padding:30px 36px; }
+
+.warn-box { background:#fff3e0; border:2px solid #ff9800; border-radius:8px; padding:11px 14px; font-size:13px; color:#7b3a00; margin-top:8px; }
+.info-box { background:#e3f2fd; border:2px solid #1565c0; border-radius:8px; padding:11px 14px; font-size:13px; color:#0d47a1; margin-top:8px; }
+.success-box { background:#e8f5e9; border:2px solid #4caf50; border-radius:8px; padding:11px 14px; font-size:13px; color:#1b5e20; margin-top:8px; }
+.tip-box { background:#f3e5f5; border:2px solid #9c27b0; border-radius:8px; padding:11px 14px; font-size:13px; color:#4a148c; margin-top:8px; }
+
+.step-item { display:flex; gap:12px; align-items:flex-start; margin-bottom:10px; }
+.si-num { color:#fff; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:900; flex-shrink:0; margin-top:2px; }
+.si-num.blue { background:linear-gradient(135deg,#1565c0,#1a237e); }
+.si-num.purple { background:linear-gradient(135deg,#7b1fa2,#4a148c); }
+.si-num.green { background:linear-gradient(135deg,#2e7d32,#1b5e20); }
+.si-num.google { background:linear-gradient(135deg,#1a5276,#1565c0); }
+.si-text { font-size:13px; line-height:1.7; color:#333; }
+.si-text strong { color:#1a237e; background:#e8f0ff; padding:1px 5px; border-radius:3px; }
+.si-text strong.p { color:#4a148c; background:#f3e5f5; }
+.si-text strong.g { color:#1b5e20; background:#e8f5e9; }
+.si-text strong.w { color:#c62828; background:#ffebee; }
+.si-text strong.goog { color:#1a5276; background:#e3f2fd; }
+
+.flow-row { display:flex; align-items:flex-start; gap:6px; flex-wrap:nowrap; overflow-x:auto; padding-bottom:4px; }
+.fl-box { flex:0 0 auto; }
+.fl-arr { align-self:center; font-size:18px; color:#1565c0; font-weight:700; flex-shrink:0; }
+.step-label { font-size:10px; font-weight:700; color:#e65100; margin-bottom:4px; text-align:center; }
+
+.start-mock { background:#1a1a2e; border-radius:10px; padding:14px; font-size:11px; color:#fff; }
+.start-search { background:#2a2a3e; border-radius:6px; padding:6px 10px; display:flex; align-items:center; gap:6px; margin-bottom:10px; font-size:11px; color:#aaa; }
+.start-icons { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+.start-icon { background:#2a2a3e; border-radius:6px; padding:8px 4px; text-align:center; font-size:9px; }
+.start-icon .si-ico { font-size:18px; margin-bottom:3px; }
+.start-icon.hl { background:#1565c0; }
+
+.settings-mock { background:#f3f3f3; border-radius:8px; overflow:hidden; border:1px solid #ccc; font-size:11px; }
+.settings-header { background:#fff; padding:8px 12px; font-weight:700; font-size:12px; border-bottom:1px solid #eee; display:flex; align-items:center; gap:8px; }
+.settings-body { display:flex; }
+.settings-side { width:130px; background:#f9f9f9; border-right:1px solid #eee; padding:6px; }
+.settings-side-item { padding:5px 8px; border-radius:4px; font-size:10px; color:#555; display:flex; align-items:center; gap:6px; margin-bottom:2px; }
+.settings-side-item.active { background:#1565c0; color:#fff; }
+.settings-main { flex:1; padding:10px; }
+.settings-row { display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid #f0f0f0; font-size:11px; }
+.settings-row:last-child { border:none; }
+.settings-btn { background:#1565c0; color:#fff; border-radius:4px; padding:3px 10px; font-size:10px; font-weight:700; }
+.settings-btn.grey { background:#e0e0e0; color:#333; }
+
+.pin-dots { display:flex; gap:8px; justify-content:center; margin:8px 0; }
+.pin-dot { width:12px; height:12px; border-radius:50%; border:2px solid #666; }
+.pin-dot.filled { background:#7b1fa2; border-color:#7b1fa2; }
+.pin-keypad { display:grid; grid-template-columns:repeat(3,1fr); gap:4px; max-width:110px; margin:0 auto; }
+.pin-key { background:#f0f0f0; border-radius:4px; padding:5px; text-align:center; font-size:12px; font-weight:700; }
+
+.win-security { background:#fff; border-radius:10px; border:2px solid #1565c0; padding:14px; font-size:11px; box-shadow:0 4px 16px rgba(0,0,0,0.15); }
+.ws-header { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+.ws-icon { width:28px; height:28px; background:#1565c0; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:14px; color:#fff; }
+.ws-title { font-size:12px; font-weight:700; color:#1a237e; }
+.ws-field { border:1px solid #ddd; border-radius:4px; padding:6px 8px; font-size:11px; color:#555; margin-bottom:8px; background:#f9f9f9; width:100%; }
+.ws-btns { display:flex; gap:6px; justify-content:flex-end; }
+.ws-btn { padding:4px 12px; border-radius:4px; font-size:10px; font-weight:700; }
+.ws-btn.primary { background:#1565c0; color:#fff; }
+.ws-btn.secondary { background:#e0e0e0; color:#333; }
+
+.camera-view { background:#111; border-radius:8px; overflow:hidden; position:relative; }
+.cam-body { height:90px; display:flex; align-items:center; justify-content:center; position:relative; }
+.cam-face { font-size:44px; }
+.cam-frame { position:absolute; inset:10px; border:2px solid rgba(255,255,255,0.3); border-radius:6px; }
+.cam-frame.scanning { border-color:#4caf50; }
+.cam-frame.done { border-color:#4caf50; background:rgba(76,175,80,0.1); }
+.cam-progress { height:5px; background:#333; }
+.cam-fill { height:100%; background:linear-gradient(90deg,#1565c0,#42a5f5); border-radius:3px; }
+.cam-label { background:#1a1a2e; color:#fff; font-size:9px; padding:3px 8px; text-align:center; }
+.cam-label.ok { background:#2e7d32; }
+
+.lock-screen { background:linear-gradient(135deg,#1a1a2e,#0d47a1); border-radius:10px; padding:14px; color:#fff; text-align:center; }
+.ls-time { font-size:28px; font-weight:900; }
+.ls-date { font-size:10px; opacity:0.7; margin-bottom:8px; }
+.ls-status { font-size:11px; opacity:0.9; line-height:1.6; }
+.ls-face-icon { font-size:30px; margin:6px 0; }
+
+.pin-signin { background:linear-gradient(135deg,#1a1a2e,#0d47a1); border-radius:10px; padding:14px; color:#fff; font-size:11px; }
+.ps-title { text-align:center; font-size:12px; font-weight:700; margin-bottom:10px; }
+.ps-dots { display:flex; gap:8px; justify-content:center; margin-bottom:8px; }
+.ps-dot { width:14px; height:14px; border-radius:50%; border:2px solid rgba(255,255,255,0.6); }
+.ps-dot.filled { background:#fff; border-color:#fff; }
+.ps-keypad { display:grid; grid-template-columns:repeat(3,1fr); gap:4px; max-width:120px; margin:0 auto 8px; }
+.ps-key { background:rgba(255,255,255,0.15); border-radius:4px; padding:6px; text-align:center; font-size:13px; font-weight:700; }
+.ps-key.del { font-size:11px; }
+.ps-hint { font-size:9px; opacity:0.7; text-align:center; }
+
+.welcome-screen { background:linear-gradient(135deg,#1a1a2e,#0d47a1); border-radius:10px; padding:14px; color:#fff; text-align:center; }
+.ws-hello-logo { font-size:36px; margin-bottom:6px; }
+.ws-hello-msg { font-size:12px; font-weight:700; margin-bottom:4px; }
+.ws-hello-sub { font-size:10px; opacity:0.8; }
+
+.accuracy-mock { background:#f3f3f3; border-radius:8px; overflow:hidden; border:1px solid #ccc; font-size:11px; }
+.am-header { background:#1a237e; color:#fff; padding:5px 10px; font-size:11px; font-weight:700; }
+.am-body { background:#fff; padding:10px; }
+.am-item { display:flex; align-items:center; justify-content:space-between; padding:6px 0; border-bottom:1px solid #f0f0f0; }
+.am-item:last-child { border:none; }
+.am-btn { background:#1565c0; color:#fff; border-radius:4px; padding:2px 8px; font-size:10px; font-weight:700; }
+.am-btn.hl { background:#e65100; }
+
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.trouble-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.tr-card { border-radius:8px; padding:14px; }
+.tr-card.prob { background:#fff3e0; border-left:3px solid #e65100; }
+.tr-card.sol { background:#e8f5e9; border-left:3px solid #2e7d32; }
+.tr-card h4 { font-size:12px; font-weight:700; margin-bottom:6px; }
+.tr-card.prob h4 { color:#bf360c; }
+.tr-card.sol h4 { color:#1b5e20; }
+.tr-card p { font-size:12px; color:#444; line-height:1.6; }
+
+/* Google mock UI */
+.google-page { background:#fff; border-radius:8px; border:1px solid #ddd; overflow:hidden; }
+.gp-header { background:#fff; padding:8px 12px; border-bottom:1px solid #eee; display:flex; align-items:center; justify-content:space-between; }
+.gp-logo { font-size:16px; font-weight:900; color:#4285f4; }
+.gp-avatar { width:22px; height:22px; border-radius:50%; background:#1565c0; display:flex; align-items:center; justify-content:center; font-size:10px; color:#fff; font-weight:700; }
+.gp-body { padding:10px; }
+
+.safari-mock { background:#f5f5f5; border-radius:10px; overflow:hidden; border:1px solid #ccc; font-size:11px; }
+.safari-bar { background:linear-gradient(180deg,#e8e8e8,#d8d8d8); padding:6px 10px; display:flex; align-items:center; gap:6px; border-bottom:1px solid #bbb; }
+.safari-addr { flex:1; background:#fff; border-radius:16px; padding:3px 10px; font-size:10px; color:#1a73e8; text-align:center; border:1px solid #ccc; font-weight:700; }
+
+.dialog { background:#fff; border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,0.2); padding:16px; font-size:11px; border:1px solid #eee; }
+.dialog-icon { font-size:28px; text-align:center; margin-bottom:6px; }
+.dialog-title { font-size:12px; font-weight:700; text-align:center; color:#333; margin-bottom:5px; }
+.dialog-body { font-size:10px; color:#555; text-align:center; line-height:1.6; margin-bottom:10px; }
+.dialog-btns { display:flex; gap:6px; justify-content:flex-end; }
+.dbtn { padding:5px 12px; border-radius:6px; font-size:10px; font-weight:700; }
+.dbtn.primary { background:#1a73e8; color:#fff; }
+.dbtn.secondary { background:#f5f5f5; color:#333; }
+
+.hello-prompt { background:linear-gradient(135deg,#1a1a2e,#0d47a1); border-radius:10px; padding:14px; color:#fff; text-align:center; font-size:11px; }
+.hp-icon { font-size:32px; margin-bottom:6px; }
+.hp-title { font-size:12px; font-weight:700; margin-bottom:4px; }
+.hp-sub { font-size:10px; opacity:0.8; margin-bottom:8px; line-height:1.5; }
+.hp-dots { display:flex; gap:6px; justify-content:center; margin-bottom:6px; }
+.hp-dot { width:10px; height:10px; border-radius:50%; border:2px solid rgba(255,255,255,0.5); }
+.hp-dot.filled { background:#fff; }
+
+.complete-card { background:#e8f5e9; border:2px solid #4caf50; border-radius:10px; padding:14px; text-align:center; }
+.cc-icon { font-size:32px; margin-bottom:6px; }
+.cc-title { font-size:13px; font-weight:700; color:#1b5e20; margin-bottom:6px; }
+.cc-pk { background:#fff; border-radius:6px; padding:8px; display:flex; align-items:center; gap:8px; text-align:left; border:1px solid #a5d6a7; margin-top:8px; }
+.cc-pk-icon { font-size:18px; }
+.cc-pk-name { font-size:10px; font-weight:700; color:#0d47a1; }
+.cc-pk-sub { font-size:9px; color:#888; }
+
+.signin-flow { display:flex; align-items:center; gap:8px; }
+.sf-step { flex:1; background:#f8f9ff; border-radius:8px; padding:10px; text-align:center; border:2px solid #90b0f0; }
+.sf-icon { font-size:22px; margin-bottom:4px; }
+.sf-title { font-size:10px; font-weight:700; color:#0d47a1; margin-bottom:2px; }
+.sf-desc { font-size:9px; color:#555; line-height:1.4; }
+.sf-arr { font-size:16px; color:#1565c0; font-weight:700; flex-shrink:0; }
+
+/* section divider */
+.section-divider { background:linear-gradient(90deg,#e8eaf6,#fff); border-left:5px solid #1565c0; border-radius:6px; padding:10px 18px; margin:0 auto 20px; max-width:1000px; font-size:14px; font-weight:800; color:#1a237e; }
+
+@media print {
+  body { background:#fff; }
+  .slide, .cover { box-shadow:none; margin:0; border-radius:0; }
+  .cover          { break-inside:avoid; page-break-inside:avoid; }
+  .slide          { break-before:page;  page-break-before:always; break-inside:avoid; page-break-inside:avoid; }
+  .step-item      { break-inside:avoid; page-break-inside:avoid; }
+  .flow-row       { break-inside:avoid; page-break-inside:avoid; }
+  .two-col        { break-inside:avoid; page-break-inside:avoid; }
+  .trouble-grid   { break-inside:avoid; page-break-inside:avoid; }
+  .tr-card        { break-inside:avoid; page-break-inside:avoid; }
+  .warn-box,.info-box,.success-box,.tip-box { break-inside:avoid; page-break-inside:avoid; }
+  .camera-view,.pin-signin,.win-security,.fl-box,.slide-head { break-inside:avoid; page-break-inside:avoid; }
+  .slide-body > * { break-inside:avoid; page-break-inside:avoid; }
+}
+</style>
+</head>
+<body>
+
+<!-- 表紙 -->
+<div class="cover">
+  <div class="cover-left">
+    <div class="cover-icon">🪟</div>
+    <div class="mbadge">😊 顔認識（Windows Hello）</div>
+    <div class="mbadge">🔢 PIN（暗証番号）</div>
+    <div class="mbadge">🔑 Googleパスキー登録</div>
+  </div>
+  <div class="cover-right">
+    <div class="cover-tag">社内向け手順書</div>
+    <h1>Windows Hello<br>顔認識・PIN ＋<br>Googleパスキー設定手順書</h1>
+    <div class="cover-sub">発行：IT事業部 コーポレートIT課　｜　2026年3月26日</div>
+    <div class="cover-desc">
+      本手順書では、Windowsデバイスへのサインインを<strong>パスワード不要</strong>で行うための<strong>顔認識（Windows Hello）</strong>および<strong>PIN</strong>の設定方法と、設定後に<strong>Google WorkspaceへパスキーをSS登録する方法</strong>を説明します。
+    </div>
+    <div class="time-bar">
+      <div class="tb-title">⏱ 作業の目安時間（合計：約10〜13分）</div>
+      <div class="time-steps">
+        <div class="ts"><div class="ts-step">事前確認</div><div class="ts-min">1分</div><div class="ts-label">確認</div></div>
+        <div class="ts"><div class="ts-step">Step 1</div><div class="ts-min">2分</div><div class="ts-label">PIN設定</div></div>
+        <div class="ts"><div class="ts-step">Step 2</div><div class="ts-min">1分</div><div class="ts-label">顔認識開始</div></div>
+        <div class="ts"><div class="ts-step">Step 3</div><div class="ts-min">1分</div><div class="ts-label">顔スキャン</div></div>
+        <div class="ts"><div class="ts-step">Step 4</div><div class="ts-min">2分</div><div class="ts-label">Gパスキー登録</div></div>
+        <div class="ts"><div class="ts-step">Step 5</div><div class="ts-min">1分</div><div class="ts-label">動作確認</div></div>
+        <div class="ts"><div class="ts-step">確認</div><div class="ts-min">1分</div><div class="ts-label">完了</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- はじめに -->
+<div class="slide">
+  <div class="slide-head blue"><div class="snum">📋</div><h2>はじめに：2つのサインイン方法と設定の流れ</h2></div>
+  <div class="slide-body">
+    <div class="two-col" style="margin-bottom:20px;">
+      <div style="background:linear-gradient(135deg,#e3f2fd,#bbdefb);border:2px solid #1565c0;border-radius:12px;padding:18px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <div style="font-size:28px;">😊</div>
+          <div style="font-size:14px;font-weight:800;color:#0d47a1;">顔認識（Windows Hello）</div>
+        </div>
+        <div style="font-size:12px;color:#333;line-height:1.7;">PCのカメラに顔を向けるだけで自動サインイン。最も手軽な方法。<br><br><strong style="color:#0d47a1;">使える場面：</strong>マスクなし・明るい場所・シャッターが開いているとき</div>
+      </div>
+      <div style="background:linear-gradient(135deg,#f3e5f5,#e1bee7);border:2px solid #7b1fa2;border-radius:12px;padding:18px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <div style="font-size:28px;">🔢</div>
+          <div style="font-size:14px;font-weight:800;color:#4a148c;">PIN（暗証番号）</div>
+        </div>
+        <div style="font-size:12px;color:#333;line-height:1.7;">数字（または英数字）を入力してサインイン。顔認識が使えない場合のバックアップ。<br><br><strong style="color:#4a148c;">使える場面：</strong>マスク着用時・暗い場所・カメラ不具合時</div>
+      </div>
+    </div>
+
+    <p style="font-size:13px;font-weight:700;color:#1a237e;margin-bottom:10px;">📌 全体の設定の流れ</p>
+    <div style="display:flex;align-items:center;gap:0;margin-bottom:16px;">
+      <div style="flex:1;background:#f3e5f5;border:2px solid #7b1fa2;border-radius:10px;padding:12px;text-align:center;">
+        <div style="font-size:20px;margin-bottom:4px;">🔢</div>
+        <div style="font-size:12px;font-weight:800;color:#4a148c;margin-bottom:2px;">① PINを先に設定</div>
+        <div style="font-size:10px;color:#555;">顔認識の必須条件</div>
+      </div>
+      <div style="font-size:22px;color:#1565c0;font-weight:700;padding:0 10px;">→</div>
+      <div style="flex:1;background:#e3f2fd;border:2px solid #1565c0;border-radius:10px;padding:12px;text-align:center;">
+        <div style="font-size:20px;margin-bottom:4px;">😊</div>
+        <div style="font-size:12px;font-weight:800;color:#0d47a1;margin-bottom:2px;">② 顔認識を設定</div>
+        <div style="font-size:10px;color:#555;">PINで本人確認後にスキャン</div>
+      </div>
+      <div style="font-size:22px;color:#1565c0;font-weight:700;padding:0 10px;">→</div>
+      <div style="flex:1;background:#e8f0ff;border:2px solid #1a5276;border-radius:10px;padding:12px;text-align:center;">
+        <div style="font-size:20px;margin-bottom:4px;">🔑</div>
+        <div style="font-size:12px;font-weight:800;color:#1a5276;margin-bottom:2px;">③ Googleパスキー登録</div>
+        <div style="font-size:10px;color:#555;">Windows Helloを使って登録</div>
+      </div>
+      <div style="font-size:22px;color:#1565c0;font-weight:700;padding:0 10px;">→</div>
+      <div style="flex:1;background:#e8f5e9;border:2px solid #2e7d32;border-radius:10px;padding:12px;text-align:center;">
+        <div style="font-size:20px;margin-bottom:4px;">✅</div>
+        <div style="font-size:12px;font-weight:800;color:#1b5e20;margin-bottom:2px;">④ 設定完了</div>
+        <div style="font-size:10px;color:#555;">パスワード不要でGoogleへ</div>
+      </div>
+    </div>
+
+    <div class="info-box">
+      💡 <strong>すでにPINを設定済みの方はStep 2から始めてください。</strong><br>
+      PINが設定済みかどうかの確認方法：スタート → 設定 → アカウント → サインインオプション を開き、「PIN（Windows Hello）」の欄に「変更」「削除」ボタンがあれば設定済みです。
+    </div>
+  </div>
+</div>
+
+<!-- Step 1: PIN設定 -->
+<div class="slide">
+  <div class="slide-head purple"><div class="snum">1</div><h2>PINの設定（顔認識の前提条件）</h2><div class="tag2">約2分</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;font-weight:700;color:#4a148c;margin-bottom:8px;">📌 スタート → 設定 → アカウント → サインインオプション を開いてください</p>
+    <div class="flow-row" style="margin-bottom:16px;">
+      <div class="fl-box" style="width:220px;">
+        <div class="step-label">① PIN（Windows Hello）をクリック</div>
+        <div class="settings-mock">
+          <div class="settings-header">🔐 サインインオプション</div>
+          <div class="settings-main">
+            <div class="settings-row" style="opacity:0.4;"><span>😊 顔認識（Windows Hello）</span><span class="settings-btn">セットアップ</span></div>
+            <div class="settings-row" style="background:#f3e5f5;border-radius:4px;padding:4px 0;"><span style="font-weight:700;color:#4a148c;">🔢 PIN（Windows Hello）</span><span class="settings-btn" style="background:#7b1fa2;">セットアップ ←</span></div>
+            <div class="settings-row" style="opacity:0.4;"><span>🔑 セキュリティキー</span><span class="settings-btn grey">管理</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="fl-arr">→</div>
+      <div class="fl-box" style="width:220px;">
+        <div class="step-label">② Windowsセキュリティ（パスワード入力）</div>
+        <div class="win-security">
+          <div class="ws-header">
+            <div class="ws-icon">🪟</div>
+            <div class="ws-title">Windowsセキュリティ</div>
+          </div>
+          <div style="font-size:11px;color:#555;margin-bottom:8px;">本人確認のため、現在のWindowsパスワードを入力してください。</div>
+          <div style="font-size:10px;color:#1a237e;background:#e8f0ff;border-radius:4px;padding:6px 8px;margin-bottom:8px;">💡 Googleのパスワードとは別のWindowsパスワードです。</div>
+          <input class="ws-field" type="password" value="••••••••" readonly>
+          <div class="ws-btns"><div class="ws-btn secondary">キャンセル</div><div class="ws-btn primary">OK ←</div></div>
+        </div>
+      </div>
+      <div class="fl-arr">→</div>
+      <div class="fl-box" style="flex:1;">
+        <div class="step-label">③ PINを入力して設定完了</div>
+        <div style="background:#fff;border-radius:10px;border:2px solid #7b1fa2;padding:14px;font-size:11px;">
+          <div style="font-weight:700;color:#4a148c;margin-bottom:8px;text-align:center;">PINのセットアップ</div>
+          <div class="pin-dots">
+            <div class="pin-dot filled"></div><div class="pin-dot filled"></div><div class="pin-dot filled"></div><div class="pin-dot filled"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+          </div>
+          <div class="pin-keypad">
+            <div class="pin-key">1</div><div class="pin-key">2</div><div class="pin-key">3</div>
+            <div class="pin-key">4</div><div class="pin-key">5</div><div class="pin-key">6</div>
+            <div class="pin-key">7</div><div class="pin-key">8</div><div class="pin-key">9</div>
+            <div class="pin-key">*</div><div class="pin-key" style="background:#7b1fa2;color:#fff;">0</div><div class="pin-key">⌫</div>
+          </div>
+          <div style="background:#7b1fa2;color:#fff;border-radius:4px;padding:4px;text-align:center;font-size:10px;font-weight:700;margin-top:8px;">OK ←</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="step-item"><div class="si-num purple">1</div><div class="si-text">サインインオプション画面で<strong class="p">「PIN（Windows Hello）」</strong>をクリックし、<strong class="p">「セットアップ」</strong>をクリックします。</div></div>
+      <div class="step-item"><div class="si-num purple">2</div><div class="si-text">「Windowsセキュリティ」ウィンドウで<strong class="p">Windowsパスワード</strong>を入力し<strong class="p">「OK」</strong>をクリックします。</div></div>
+      <div class="step-item"><div class="si-num purple">3</div><div class="si-text">PINのセットアップ画面で<strong class="p">任意の数字（4桁以上）</strong>を入力し<strong class="p">「OK」</strong>をクリックします。</div></div>
+      <div class="success-box">✅ 「PIN（Windows Hello）」に「変更」「削除」が表示されていればPINの設定完了です。次のStep 2へ進んでください。</div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 2: 顔認識設定開始 -->
+<div class="slide">
+  <div class="slide-head blue"><div class="snum">2</div><h2>顔認識（Windows Hello）の設定開始</h2><div class="tag2">約1分</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;font-weight:700;color:#1a237e;margin-bottom:8px;">📌 顔認識の「セットアップ」をクリック</p>
+    <div class="flow-row" style="margin-bottom:16px;">
+      <div class="fl-box" style="width:220px;">
+        <div class="step-label">① 顔認識（Windows Hello）をクリック</div>
+        <div class="settings-mock">
+          <div class="settings-header">🔐 サインインオプション</div>
+          <div class="settings-main">
+            <div class="settings-row" style="background:#e3f2fd;border-radius:4px;padding:4px 0;"><span style="font-weight:700;color:#0d47a1;">😊 顔認識（Windows Hello）</span><span class="settings-btn">セットアップ ←</span></div>
+            <div class="settings-row" style="opacity:0.5;"><span>🔢 PIN（Windows Hello）</span><span style="font-size:10px;color:#4caf50;font-weight:700;">✅ 設定済み</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="fl-arr">→</div>
+      <div class="fl-box" style="width:200px;">
+        <div class="step-label">② 「開始する」をクリック</div>
+        <div style="background:#fff;border-radius:10px;border:1px solid #ddd;padding:14px;font-size:11px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+          <div style="font-size:28px;margin-bottom:8px;">😊</div>
+          <div style="font-weight:700;font-size:12px;color:#333;margin-bottom:6px;">Windows Helloセットアップ</div>
+          <div style="font-size:10px;color:#555;margin-bottom:10px;line-height:1.5;">カメラを使って顔を登録します。プライバシーシャッターが開いていることを確認してください。</div>
+          <div style="background:#1565c0;color:#fff;border-radius:5px;padding:5px;font-size:11px;font-weight:700;">開始する ←</div>
+        </div>
+      </div>
+      <div class="fl-arr">→</div>
+      <div class="fl-box" style="flex:1;">
+        <div class="step-label">③ PINで本人確認 → 顔スキャンへ</div>
+        <div style="background:#fff;border-radius:10px;border:1px solid #ddd;padding:14px;font-size:11px;box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+          <div style="font-weight:700;color:#333;margin-bottom:6px;text-align:center;">ユーザーを確認しています</div>
+          <div style="background:#e8f0ff;border-radius:4px;padding:6px 8px;font-size:10px;color:#0d47a1;margin-bottom:8px;">💡 顔登録前の本人確認のためPINを1回だけ入力します。</div>
+          <div class="pin-dots" style="margin:8px 0;"><div class="pin-dot filled"></div><div class="pin-dot filled"></div><div class="pin-dot filled"></div><div class="pin-dot filled"></div></div>
+          <div style="background:#1565c0;color:#fff;border-radius:5px;padding:4px;text-align:center;font-size:10px;font-weight:700;">→ 顔スキャンへ進む</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="step-item"><div class="si-num blue">1</div><div class="si-text">サインインオプション画面で<strong>「顔認識（Windows Hello）」</strong>をクリックし、<strong>「セットアップ」</strong>をクリックします。</div></div>
+      <div class="step-item"><div class="si-num blue">2</div><div class="si-text"><strong>プライバシーシャッターが開いていること</strong>を確認し、<strong>「開始する」</strong>をクリックします。</div></div>
+      <div class="step-item"><div class="si-num blue">3</div><div class="si-text">Step 1で設定した<strong>PINを入力</strong>して本人確認を完了します。</div></div>
+      <div class="warn-box">⚠️ <strong>「このオプションは現在使用できません」と表示される場合</strong>：組織のポリシーによる制限の可能性があります。<strong>#keeper-support</strong>チャンネルへお問い合わせください。</div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 3: 顔スキャン -->
+<div class="slide">
+  <div class="slide-head blue"><div class="snum">3</div><h2>顔のスキャン登録</h2><div class="tag2">約30秒〜1分</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;font-weight:700;color:#1a237e;margin-bottom:8px;">📌 スキャンの流れ</p>
+    <div style="display:grid;grid-template-columns:1fr 30px 1fr 30px 1fr;gap:8px;align-items:center;margin-bottom:16px;">
+      <div>
+        <div style="font-size:10px;font-weight:700;color:#e65100;margin-bottom:4px;text-align:center;">① カメラ映像が表示される</div>
+        <div class="camera-view">
+          <div class="cam-body"><div class="cam-face">😐</div><div class="cam-frame"></div></div>
+          <div class="cam-progress"><div class="cam-fill" style="width:0%;"></div></div>
+          <div class="cam-label">カメラを正面から見てください</div>
+        </div>
+      </div>
+      <div style="font-size:20px;color:#1565c0;font-weight:700;text-align:center;">→</div>
+      <div>
+        <div style="font-size:10px;font-weight:700;color:#1565c0;margin-bottom:4px;text-align:center;">② スキャン中（約3〜5秒）</div>
+        <div class="camera-view">
+          <div class="cam-body"><div class="cam-face">😊</div><div class="cam-frame scanning"></div></div>
+          <div class="cam-progress"><div class="cam-fill" style="width:65%;"></div></div>
+          <div class="cam-label" style="background:#1565c0;">スキャン中... そのまま見続けてください</div>
+        </div>
+      </div>
+      <div style="font-size:20px;color:#1565c0;font-weight:700;text-align:center;">→</div>
+      <div>
+        <div style="font-size:10px;font-weight:700;color:#2e7d32;margin-bottom:4px;text-align:center;">③ スキャン完了！</div>
+        <div class="camera-view">
+          <div class="cam-body" style="background:#0a1f0a;"><div class="cam-face">😊</div><div class="cam-frame done"></div></div>
+          <div class="cam-progress"><div class="cam-fill" style="width:100%;background:linear-gradient(90deg,#2e7d32,#4caf50);"></div></div>
+          <div class="cam-label ok">✅ 顔の登録が完了しました</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="step-item"><div class="si-num blue">4</div><div class="si-text">カメラ映像が表示されたら<strong>フレーム中央に顔を合わせ</strong>、まっすぐカメラを見続けます。約3〜5秒で自動完了します。</div></div>
+      <div class="warn-box" style="margin-top:0;">😷 マスク着用の方はマスクを外してください。登録は素顔で行う必要があります。</div>
+      <div class="step-item"><div class="si-num blue">5</div><div class="si-text"><strong>「すべての設定が完了しました」</strong>が表示されたら<strong>「閉じる」</strong>をクリックします。</div></div>
+      <div class="tip-box">💡 <strong>認識精度を高めるには（推奨）</strong>：「認識精度を高める」をクリックして追加登録。メガネのあり・なし両方を登録すると効果的です。</div>
+      <div class="success-box">✅ 顔認識（Windows Hello）に「認識精度を高める」「削除」が表示されていれば顔認識の設定完了です。次のStep 4へ進んでください。</div>
+    </div>
+  </div>
+</div>
+
+<!-- ★ Step 4: Googleパスキー登録（新規追加） -->
+<div class="slide">
+  <div class="slide-head google"><div class="snum">4</div><h2>Google WorkspaceへのパスキーSS登録</h2><div class="tag2">約2分</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;font-weight:700;color:#1a237e;margin-bottom:6px;">📌 Step 1〜3でWindows Helloの設定が完了したら、Googleアカウントにパスキーを登録します</p>
+    <div class="info-box" style="margin-bottom:16px;">
+      💡 このステップではブラウザ（ChromeまたはEdge）を使用します。<strong>会社のGoogleアカウントにログイン済み</strong>であることを確認してください。
+    </div>
+
+    <!-- フロー図 -->
+    <p style="font-size:12px;font-weight:700;color:#e65100;margin-bottom:8px;">📌 登録の流れ</p>
+    <div class="flow-row" style="margin-bottom:20px;">
+      <!-- ①URL入力 -->
+      <div class="fl-box" style="width:180px;">
+        <div class="step-label">① パスキー設定ページへ</div>
+        <div class="safari-mock">
+          <div class="safari-bar">
+            <div style="display:flex;gap:5px;">
+              <div style="width:10px;height:10px;border-radius:50%;background:#ff5f57;"></div>
+              <div style="width:10px;height:10px;border-radius:50%;background:#ffbd2e;"></div>
+              <div style="width:10px;height:10px;border-radius:50%;background:#28c940;"></div>
+            </div>
+            <div class="safari-addr">myaccount.google.com/signinoptions/passkeys</div>
+          </div>
+          <div style="background:#fff;padding:8px 10px;font-size:10px;color:#888;">↑ このURLを入力してEnter</div>
+        </div>
+        <div style="background:#e8f0ff;border-radius:5px;padding:5px 8px;font-size:10px;color:#0d47a1;font-weight:700;margin-top:4px;font-family:monospace;word-break:break-all;">myaccount.google.com/signinoptions/passkeys</div>
+      </div>
+      <div class="fl-arr">→</div>
+      <!-- ②パスキーを作成クリック -->
+      <div class="fl-box" style="width:170px;">
+        <div class="step-label">② 「パスキーを作成」をクリック</div>
+        <div class="google-page">
+          <div class="gp-header"><div class="gp-logo">Google</div><div class="gp-avatar">J</div></div>
+          <div class="gp-body">
+            <div style="font-size:11px;font-weight:700;color:#333;margin-bottom:6px;">パスキーとセキュリティキー</div>
+            <div style="font-size:10px;color:#555;margin-bottom:8px;">パスキーを使うとパスワードなしでサインインできます</div>
+            <div style="background:#1a73e8;color:#fff;border-radius:4px;padding:5px 8px;font-size:10px;font-weight:700;text-align:center;">＋ パスキーを作成 ←</div>
+          </div>
+        </div>
+      </div>
+      <div class="fl-arr">→</div>
+      <!-- ③続行 -->
+      <div class="fl-box" style="width:160px;">
+        <div class="step-label">③ 「続行」をクリック</div>
+        <div class="dialog">
+          <div class="dialog-icon">💻</div>
+          <div class="dialog-title">このデバイスでパスキーを作成</div>
+          <div class="dialog-body">パスキーはこのWindowsデバイスのWindows Helloで保護されます。</div>
+          <div class="dialog-btns">
+            <div class="dbtn secondary">キャンセル</div>
+            <div class="dbtn primary">続行 ←</div>
+          </div>
+        </div>
+      </div>
+      <div class="fl-arr">→</div>
+      <!-- ④Windows Hello認証 -->
+      <div class="fl-box" style="width:160px;">
+        <div class="step-label">④ Windows Hello で認証</div>
+        <div class="hello-prompt">
+          <div class="hp-icon">🪟</div>
+          <div class="hp-title">Windows Helloで認証</div>
+          <div class="hp-sub">顔認証またはPINでパスキーを作成します</div>
+          <div style="display:flex;gap:10px;justify-content:center;margin-bottom:8px;">
+            <div style="text-align:center;font-size:10px;">
+              <div style="font-size:22px;">😊</div>
+              <div>顔認証</div>
+            </div>
+            <div style="align-self:center;opacity:0.5;">or</div>
+            <div style="text-align:center;font-size:10px;">
+              <div style="font-size:22px;">🔢</div>
+              <div>PIN入力</div>
+            </div>
+          </div>
+          <div class="hp-dots"><div class="hp-dot filled"></div><div class="hp-dot filled"></div><div class="hp-dot filled"></div><div class="hp-dot filled"></div></div>
+          <div style="font-size:9px;opacity:0.7;">PINを入力するか顔をカメラに向ける</div>
+        </div>
+      </div>
+      <div class="fl-arr">→</div>
+      <!-- ⑤完了 -->
+      <div class="fl-box" style="flex:1;">
+        <div class="step-label">⑤ パスキー登録完了！</div>
+        <div class="complete-card">
+          <div class="cc-icon">🎉</div>
+          <div class="cc-title">パスキーが作成されました！</div>
+          <div style="font-size:11px;color:#555;margin-bottom:6px;">次回からWindows Helloでパスワードなしでサインインできます。</div>
+          <div class="cc-pk">
+            <div class="cc-pk-icon">🔑</div>
+            <div>
+              <div class="cc-pk-name">Windows デバイス - Windows Hello</div>
+              <div class="cc-pk-sub">作成日：2026年3月26日</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 手順テキスト -->
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+      <div class="step-item"><div class="si-num google">1</div><div class="si-text">ChromeまたはEdgeを開き、アドレスバーに <strong class="goog">myaccount.google.com/signinoptions/passkeys</strong> と入力してEnterを押します。</div></div>
+      <div class="step-item"><div class="si-num google">2</div><div class="si-text">パスキー設定ページで<strong class="goog">「＋ パスキーを作成」</strong>ボタンをクリックします。</div></div>
+      <div class="step-item"><div class="si-num google">3</div><div class="si-text">「このデバイスでパスキーを作成」というダイアログが表示されたら<strong class="goog">「続行」</strong>をクリックします。</div></div>
+      <div class="step-item"><div class="si-num google">4</div><div class="si-text">Windows Helloの認証画面が表示されます。<strong class="goog">顔をカメラに向けるか、PINを入力</strong>します。</div></div>
+      <div class="step-item"><div class="si-num google">5</div><div class="si-text"><strong class="goog">「パスキーが作成されました」</strong>と表示されれば登録完了です。Step 5へ進んで動作確認を行います。</div></div>
+    </div>
+
+    <div class="two-col">
+      <div class="warn-box" style="margin-top:0;">
+        ⚠️ <strong>「確認が完了しました」画面で止まっている場合</strong><br>
+        「試してみる」ボタンをクリックしてください。Windows Helloの認証（顔認識またはPIN）が求められ、それが完了するとパスキーが正式に登録されます。
+      </div>
+      <div class="warn-box" style="margin-top:0;">
+        ⚠️ <strong>「管理者がパスキーの使用を有効にしていません」と表示される場合</strong><br>
+        Google管理コンソールでパスワードスキップが有効になっていない可能性があります。管理者に確認してください。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 5: 動作確認 -->
+<div class="slide">
+  <div class="slide-head green"><div class="snum">5</div><h2>動作確認：パスキーでGoogleにサインインしてみましょう</h2><div class="tag2">約1分</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;color:#444;margin-bottom:14px;">設定完了後、実際にパスキーでサインインできるか確認します。</p>
+    <div class="signin-flow" style="margin-bottom:20px;">
+      <div class="sf-step">
+        <div class="sf-icon">🌐</div>
+        <div class="sf-title">① Googleにアクセス</div>
+        <div class="sf-desc">accounts.google.comにアクセスしてメールアドレスを入力</div>
+      </div>
+      <div class="sf-arr">→</div>
+      <div class="sf-step">
+        <div class="sf-icon">🔑</div>
+        <div class="sf-title">② パスキーを使う</div>
+        <div class="sf-desc">「パスキーを使って本人確認を行います」と表示される</div>
+      </div>
+      <div class="sf-arr">→</div>
+      <div class="sf-step">
+        <div class="sf-icon">😊</div>
+        <div class="sf-title">③ Windows Helloで認証</div>
+        <div class="sf-desc">顔認証またはPINでOK。パスワード入力なし！</div>
+      </div>
+      <div class="sf-arr">→</div>
+      <div class="sf-step" style="background:#e8f5e9;border-color:#4caf50;">
+        <div class="sf-icon">✅</div>
+        <div class="sf-title" style="color:#1b5e20;">④ サインイン完了！</div>
+        <div class="sf-desc">瞬時にGoogleにサインイン</div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div style="background:#f0f4ff;border-radius:10px;padding:16px;border:2px solid #90b0f0;">
+        <div style="font-size:13px;font-weight:700;color:#0d47a1;margin-bottom:10px;">📌 確認手順</div>
+        <div class="step-item"><div class="si-num blue">1</div><div class="si-text" style="font-size:12px;">Googleからサインアウトします（アカウントアイコン → サインアウト）。</div></div>
+        <div class="step-item"><div class="si-num blue">2</div><div class="si-text" style="font-size:12px;"><strong>accounts.google.com</strong>にアクセスし、会社のメールアドレスを入力します。</div></div>
+        <div class="step-item"><div class="si-num blue">3</div><div class="si-text" style="font-size:12px;">「パスキーを使って本人確認を行います」と表示されたら<strong>「次へ」</strong>をクリックします。</div></div>
+        <div class="step-item"><div class="si-num blue">4</div><div class="si-text" style="font-size:12px;">Windows Helloで顔認証またはPINを入力し、サインインできることを確認します。</div></div>
+      </div>
+      <div>
+        <div style="background:#e8f5e9;border:2px solid #4caf50;border-radius:10px;padding:14px;margin-bottom:12px;">
+          <div style="font-size:13px;font-weight:700;color:#1b5e20;margin-bottom:8px;">✅ 確認完了のチェックリスト</div>
+          <div style="font-size:12px;color:#333;line-height:1.9;">
+            ☑ パスワード入力なしでサインインできた<br>
+            ☑ Windows Helloで認証が完了した<br>
+            ☑ Googleアカウントのページが開いた
+          </div>
+        </div>
+        <div class="warn-box">
+          ⚠️ <strong>「パスキーが使えない」と表示された場合</strong><br>
+          管理者のパスワードスキップ設定を確認するか、IT課（#keeper-support）にお問い合わせください。
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- トラブルシューティング -->
+<div class="slide">
+  <div class="slide-head orange"><div class="snum">6</div><h2>よくある問題と対処法</h2></div>
+  <div class="slide-body">
+    <div class="trouble-grid">
+      <div class="tr-card prob"><h4>😔 顔が認識されない</h4><p>「認識できませんでした」と表示される</p></div>
+      <div class="tr-card sol"><h4>✅ 対処法</h4><p>① プライバシーシャッターが開いているか確認<br>② マスクを外して試す<br>③ 照明が暗すぎないか確認<br>④ 「認識精度を高める」で再登録<br>⑤ 解決しない場合はPINでサインイン</p></div>
+      <div class="tr-card prob"><h4>🔢 PINを忘れた</h4><p>PINが思い出せない</p></div>
+      <div class="tr-card sol"><h4>✅ 対処法</h4><p>サインイン画面の<strong>「PINを忘れた場合」</strong>をクリック → Microsoftアカウントまたはドメインパスワードで本人確認 → 新しいPINを再設定。解決しない場合は<strong>#keeper-support</strong>へ。</p></div>
+      <div class="tr-card prob"><h4>🔑 Googleパスキー登録時にWindows Helloが起動しない</h4><p>ブラウザでパスキー作成を押しても何も起きない</p></div>
+      <div class="tr-card sol"><h4>✅ 対処法</h4><p>① ChromeまたはEdgeを最新版に更新する<br>② Windows Helloが正しく設定されているか確認（Step 1〜3を再確認）<br>③ ブラウザを再起動して再試行する</p></div>
+      <div class="tr-card prob"><h4>🚫 「管理者がパスキーの使用を有効にしていません」</h4><p>組織の設定によりパスキーが使えない</p></div>
+      <div class="tr-card sol"><h4>✅ 対処法</h4><p>IT課がGoogle管理コンソールでパスワードスキップを有効化する必要があります。<strong>#keeper-support</strong>チャンネルへご連絡ください。</p></div>
+      <div class="tr-card prob"><h4>⚙️ 「セットアップ」ボタンが出ない</h4><p>「このオプションは現在使用できません」と表示される</p></div>
+      <div class="tr-card sol"><h4>✅ 対処法</h4><p>組織ポリシーで制限中の可能性があります。Slack <strong>#keeper-support</strong> チャンネルへお問い合わせください。IT課がポリシー設定を確認します。</p></div>
+      <div class="tr-card prob"><h4>🔄 パスキーを削除・再作成したい</h4><p>パスキーをリセットしたい場合</p></div>
+      <div class="tr-card sol"><h4>✅ 対処法</h4><p>myaccount.google.com/signinoptions/passkeys にアクセス → 削除したいパスキーの削除アイコンをクリック → 同じ手順（Step 4）で再作成できます。</p></div>
+    </div>
+    <div style="margin-top:16px;background:#e8eaf6;border-radius:10px;padding:14px 18px;font-size:13px;">
+      ❓ 上記で解決しない場合は Slack <strong>#keeper-support</strong> チャンネルまたはコーポレートIT課までお問い合わせください。
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
