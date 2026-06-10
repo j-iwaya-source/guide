@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DMARC p=quarantine 移行手順書</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Hiragino Sans','Yu Gothic',Arial,sans-serif; background:#f0f4f8; color:#1a1a2e; }
+
+/* ─── 表紙 ─── */
+.cover {
+  background: linear-gradient(135deg,#0d3b2e 0%,#1a6b3a 50%,#0a5a7a 100%);
+  min-height:480px; display:flex; align-items:center; justify-content:space-between;
+  padding:48px 64px; gap:40px; margin-bottom:32px; position:relative; overflow:hidden;
+}
+.cover::before { content:''; position:absolute; inset:0;
+  background: radial-gradient(circle at 30% 50%, rgba(0,200,100,0.15) 0%, transparent 60%),
+              radial-gradient(circle at 70% 30%, rgba(100,200,255,0.1) 0%, transparent 50%); }
+.cover-left { flex:1; position:relative; z-index:1; }
+.cover-icon { font-size:100px; line-height:1; filter:drop-shadow(0 0 30px rgba(0,220,120,0.5)); }
+.cover-right { flex:1.2; position:relative; z-index:1; color:#fff; }
+.cover-tag { background:rgba(255,200,0,0.9); color:#1a1a2e; font-size:13px; font-weight:700; padding:4px 14px; border-radius:4px; display:inline-block; margin-bottom:16px; }
+.cover-right h1 { font-size:36px; font-weight:900; line-height:1.3; margin-bottom:12px; text-shadow:0 2px 8px rgba(0,0,0,0.3); }
+.cover-right .cover-sub { font-size:12px; opacity:0.8; margin-bottom:16px; }
+.cover-right .cover-desc { font-size:13px; line-height:1.8; background:rgba(255,255,255,0.1); border-radius:8px; padding:14px; border-left:3px solid #00d4a0; margin-bottom:16px; }
+.cover-right .cover-desc strong { color:#ffd700; }
+.support-banner { background:rgba(255,255,255,0.15); border:2px solid #ffd700; border-radius:10px; padding:12px 16px; margin-bottom:16px; display:flex; align-items:center; gap:12px; }
+.support-banner .sb-icon { font-size:24px; flex-shrink:0; }
+.support-banner .sb-text { font-size:12px; line-height:1.6; }
+.support-banner .sb-text strong { color:#ffd700; font-size:13px; }
+.time-bar { background:rgba(255,255,255,0.1); border-radius:10px; padding:12px 16px; border:1px solid rgba(255,255,255,0.2); }
+.time-bar .tb-title { font-size:12px; font-weight:700; color:#ffd700; margin-bottom:8px; }
+.time-steps { display:flex; gap:0; }
+.ts { flex:1; text-align:center; padding:6px 4px; border-right:1px solid rgba(255,255,255,0.2); }
+.ts:last-child { border-right:none; }
+.ts .ts-step { font-size:9px; opacity:0.7; }
+.ts .ts-min { font-size:14px; font-weight:900; color:#ffd700; }
+.ts .ts-label { font-size:9px; opacity:0.8; }
+.time-total { font-size:11px; margin-top:8px; text-align:right; opacity:0.85; }
+
+/* ─── スライド共通 ─── */
+.slide { background:#fff; margin:0 auto 32px; max-width:1000px; border-radius:16px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,0.10); }
+.slide-head { background:linear-gradient(90deg,#0d3b2e,#1a6b3a); color:#fff; padding:18px 36px; display:flex; align-items:center; gap:14px; }
+.slide-head .snum { background:rgba(255,255,255,0.2); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:900; flex-shrink:0; }
+.slide-head h2 { font-size:22px; font-weight:800; }
+.slide-head .tag2 { margin-left:auto; background:rgba(255,200,0,0.9); color:#1a1a2e; font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; white-space:nowrap; }
+.slide-body { padding:32px 36px; }
+
+/* ─── カラーボックス ─── */
+.warn-box { background:#fff3cd; border:2px solid #ffc107; border-radius:8px; padding:12px 16px; font-size:13px; color:#7b4800; }
+.warn-box strong { color:#c62828; }
+.important-box { background:#fff3e0; border:2px solid #ff9800; border-radius:8px; padding:12px 16px; font-size:13px; color:#7b3a00; }
+.important-box .i-title { font-weight:800; color:#e65100; margin-bottom:6px; font-size:14px; }
+.success-box { background:#e8f5e9; border:2px solid #4caf50; border-radius:8px; padding:12px 16px; font-size:13px; color:#1b5e20; margin-top:8px; }
+.info-box { background:#e3f2fd; border:2px solid #1565c0; border-radius:8px; padding:12px 16px; font-size:13px; color:#0d47a1; margin-top:8px; }
+.danger-box { background:#ffebee; border:2px solid #c62828; border-radius:8px; padding:14px 16px; font-size:13px; color:#c62828; }
+.slide-support { background:#f0fff4; border-top:2px dashed #90d0a0; padding:10px 20px; font-size:12px; color:#1b5e20; display:flex; align-items:center; gap:8px; }
+.slide-support strong { color:#c62828; }
+
+/* ─── ステップ共通 ─── */
+.step-item { display:flex; gap:12px; align-items:flex-start; margin-bottom:10px; }
+.si-num { background:linear-gradient(135deg,#1a6b3a,#0d3b2e); color:#fff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:900; flex-shrink:0; margin-top:1px; }
+.si-text { font-size:13px; line-height:1.7; color:#333; }
+.si-text strong { color:#0d3b2e; background:#e8f8ee; padding:1px 5px; border-radius:3px; }
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+
+/* ─── ターミナル ─── */
+.terminal { background:#1e1e1e; border-radius:10px; overflow:hidden; font-size:11px; }
+.terminal-bar { background:#333; padding:6px 10px; display:flex; align-items:center; gap:5px; }
+.t-dot { width:10px; height:10px; border-radius:50%; }
+.t-dot.r { background:#ff5f56; }
+.t-dot.y { background:#ffbd2e; }
+.t-dot.g { background:#27c93f; }
+.t-title { font-size:10px; color:#aaa; margin-left:6px; }
+.terminal-body { padding:10px 14px; font-family:monospace; line-height:1.8; }
+.t-prompt { color:#27c93f; }
+.t-cmd { color:#f8f8f2; }
+.t-comment { color:#75715e; }
+.t-ok { color:#a6e22e; font-weight:700; }
+.t-fail { color:#f92672; font-weight:700; }
+.t-val { color:#e6db74; }
+
+/* ─── お名前.com DNS風 ─── */
+.onamae-mock { background:#fff; border-radius:10px; border:2px solid #e0001b; overflow:hidden; font-size:11px; }
+.onamae-head { background:#e0001b; color:#fff; padding:7px 12px; display:flex; align-items:center; justify-content:space-between; }
+.onamae-title { font-weight:700; font-size:12px; }
+.onamae-body { padding:10px 12px; }
+.dns-row { display:grid; grid-template-columns:1.4fr 1.2fr 0.5fr 0.5fr 3fr; gap:0; margin-bottom:4px; font-size:10px; }
+.dns-row.header { background:#f0f4f8; font-weight:700; color:#444; border-radius:4px 4px 0 0; }
+.dns-cell { padding:5px 7px; border-bottom:1px solid #eee; display:flex; align-items:center; }
+.dns-row.current .dns-cell { background:#f9f9f9; }
+.dns-row.change .dns-cell { background:#fff8e1; border-left:3px solid #fbc02d; }
+.dns-val { font-family:monospace; font-size:9px; color:#333; word-break:break-all; }
+.dns-badge { background:#4caf50; color:#fff; border-radius:3px; padding:1px 5px; font-size:9px; font-weight:700; }
+.dns-badge.blue { background:#1565c0; }
+.dns-badge.orange { background:#ff9800; }
+.dns-badge.gray { background:#888; }
+
+/* ─── 画面バッジ ─── */
+.screen-badge { display:inline-flex; align-items:center; gap:6px; background:#0d3b2e; color:#fff; border-radius:20px; padding:5px 14px; font-size:12px; font-weight:700; margin-bottom:14px; }
+.screen-badge.red { background:#b71c1c; }
+
+/* ─── ロードマップ ─── */
+.roadmap { display:flex; gap:0; align-items:stretch; margin:16px 0; }
+.rm-phase { flex:1; border-radius:0; overflow:hidden; border:1px solid #e0e0e0; }
+.rm-phase:first-child { border-radius:8px 0 0 8px; }
+.rm-phase:last-child { border-radius:0 8px 8px 0; }
+.rm-head { padding:8px 12px; color:#fff; font-size:11px; font-weight:800; }
+.rm-body { padding:10px 12px; font-size:10px; color:#444; line-height:1.7; background:#fff; }
+.rm-now { background:#ffd700; color:#1a1a1a; font-size:9px; font-weight:700; padding:2px 8px; border-radius:10px; margin-top:6px; display:inline-block; }
+
+/* ─── その他 ─── */
+.code-inline { font-family:monospace; font-size:12px; background:#f5f5f5; border:1px solid #ddd; border-radius:3px; padding:1px 7px; color:#1b5e20; font-weight:700; }
+
+/* ─── チェックリスト ─── */
+.checklist-item { background:#f8f8f8; border:1px solid #ddd; border-radius:8px; padding:10px 14px; font-size:12px; color:#333; display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.check-box { width:18px; height:18px; border:2px solid #1a6b3a; border-radius:3px; flex-shrink:0; }
+
+/* ─── 変更前後比較 ─── */
+.compare-table { width:100%; border-collapse:collapse; font-size:12px; margin-bottom:16px; }
+.compare-table th { padding:8px 12px; text-align:left; border:1px solid #ddd; }
+.compare-table td { padding:8px 12px; border:1px solid #ddd; vertical-align:top; }
+.compare-table .th-label { background:#455a64; color:#fff; width:120px; }
+.compare-table .td-before { background:#ffebee; color:#b71c1c; font-family:monospace; font-size:11px; }
+.compare-table .td-after { background:#e8f5e9; color:#1b5e20; font-family:monospace; font-size:11px; font-weight:700; }
+.compare-table .td-reason { background:#f5f5f5; font-size:11px; color:#444; line-height:1.7; }
+
+@media print {
+  body { background:#fff; }
+  .cover, .slide { box-shadow:none; margin:0; border-radius:0; }
+  .cover { min-height:unset !important; padding:32px 48px !important; break-inside:avoid; page-break-inside:avoid; }
+  .slide { break-before:page; page-break-before:always; break-inside:avoid; page-break-inside:avoid; margin-bottom:0 !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- ========== 表紙 ========== -->
+<div class="cover">
+  <div class="cover-left"><div class="cover-icon">🔒</div></div>
+  <div class="cover-right">
+    <div class="cover-tag">【コーポレートIT課 作業手順書】</div>
+    <h1>DMARC 移行手順書<br>p=none → p=quarantine</h1>
+    <div class="cover-sub">発行：コーポレートIT課　｜　対象ドメイン：adventure-inc.co.jp　｜　2026年6月10日</div>
+    <div class="cover-desc">
+      6日連続で認証率99%超を達成。<strong>DMARCをp=quarantine（隔離モード）へ移行</strong>します。<br>
+      あわせて Zabbixプロキシ（52.194.41.164）をSPFに追加します。<br>
+      <strong>pct=10 のため、影響はFAILメールの10%のみです。</strong>
+    </div>
+    <div class="support-banner">
+      <div class="sb-icon">🆘</div>
+      <div class="sb-text">
+        <strong>作業中に困ったら → Slack: #help_社内システム</strong><br>
+        DNS設定・緊急ロールバックは <strong>当日中</strong> に対応します。
+      </div>
+    </div>
+    <div class="time-bar">
+      <div class="tb-title">⏱ 作業時間の目安</div>
+      <div class="time-steps">
+        <div class="ts"><div class="ts-step">事前確認</div><div class="ts-min">5分</div><div class="ts-label">DNS現状確認</div></div>
+        <div class="ts"><div class="ts-step">STEP 1</div><div class="ts-min">5分</div><div class="ts-label">SPF変更</div></div>
+        <div class="ts"><div class="ts-step">STEP 2</div><div class="ts-min">5分</div><div class="ts-label">DMARC変更</div></div>
+        <div class="ts"><div class="ts-step">待機</div><div class="ts-min">〜数時間</div><div class="ts-label">DNS反映待ち</div></div>
+        <div class="ts"><div class="ts-step">STEP 3</div><div class="ts-min">10分</div><div class="ts-label">反映確認</div></div>
+      </div>
+      <div class="time-total">合計（操作時間のみ）：約 15〜20分</div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 現状と移行根拠 ========== -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">0</div><h2>現状の設定状況と移行根拠</h2><div class="tag2">確認 5分</div></div>
+  <div class="slide-body">
+
+    <p style="font-size:13px;font-weight:700;color:#0d3b2e;margin-bottom:12px;">📋 adventure-inc.co.jp の現在の設定（作業前）</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px;">
+      <div style="border:2px solid #4caf50;border-radius:10px;overflow:hidden;">
+        <div style="background:#4caf50;color:#fff;padding:7px 12px;font-weight:700;font-size:12px;">SPF ✅ 設定済み</div>
+        <div style="padding:10px 12px;font-size:11px;line-height:1.7;background:#f1fff4;">
+          <div style="font-family:monospace;font-size:10px;background:#fff;border:1px solid #ddd;border-radius:4px;padding:5px 8px;margin-bottom:6px;word-break:break-all;">v=spf1 +mx include:_spf.google.com include:spf.makeshop.jp -all</div>
+          <div style="color:#b71c1c;font-weight:700;font-size:10px;">⚠️ Zabbixプロキシ（52.194.41.164）が未登録<br>→ 今回追加します</div>
+        </div>
+      </div>
+      <div style="border:2px solid #4caf50;border-radius:10px;overflow:hidden;">
+        <div style="background:#4caf50;color:#fff;padding:7px 12px;font-weight:700;font-size:12px;">DKIM ✅ 設定済み</div>
+        <div style="padding:10px 12px;font-size:11px;line-height:1.7;background:#f1fff4;">
+          <div style="font-size:11px;color:#1b5e20;">google._domainkey.adventure-inc.co.jp にDKIMレコードが設定済み。全送信でPASS確認済み。</div>
+          <div style="margin-top:6px;background:#e8f5e9;border-radius:4px;padding:4px 8px;font-size:10px;font-weight:700;color:#1b5e20;">→ 今回変更なし</div>
+        </div>
+      </div>
+      <div style="border:2px solid #ff9800;border-radius:10px;overflow:hidden;">
+        <div style="background:#ff9800;color:#fff;padding:7px 12px;font-weight:700;font-size:12px;">DMARC ⚠️ 監視モード</div>
+        <div style="padding:10px 12px;font-size:11px;line-height:1.7;background:#fff8e1;">
+          <div style="font-family:monospace;font-size:10px;background:#fff;border:1px solid #ddd;border-radius:4px;padding:5px 8px;margin-bottom:6px;word-break:break-all;">v=DMARC1; p=none; rua=mailto:info-system@adventure-inc.co.jp</div>
+          <div style="color:#e65100;font-weight:700;font-size:10px;">→ 今回 p=quarantine pct=10 に変更します</div>
+        </div>
+      </div>
+    </div>
+
+    <p style="font-size:13px;font-weight:700;color:#0d3b2e;margin-bottom:10px;">📊 認証率トレンド（移行判断の根拠）</p>
+    <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:16px;background:#f8f8f8;border-radius:10px;padding:16px 20px;">
+      <div style="text-align:center;flex:1;">
+        <div style="font-size:10px;color:#888;margin-bottom:4px;">6/1</div>
+        <div style="background:#4caf50;border-radius:4px 4px 0 0;height:80px;width:100%;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;">
+          <span style="font-size:10px;color:#fff;font-weight:700;">99.39%</span>
+        </div>
+      </div>
+      <div style="text-align:center;flex:1;">
+        <div style="font-size:10px;color:#888;margin-bottom:4px;">6/2</div>
+        <div style="background:#ff9800;border-radius:4px 4px 0 0;height:55px;width:100%;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;">
+          <span style="font-size:10px;color:#fff;font-weight:700;">97.95%</span>
+        </div>
+      </div>
+      <div style="text-align:center;flex:1;">
+        <div style="font-size:10px;color:#888;margin-bottom:4px;">6/3</div>
+        <div style="background:#4caf50;border-radius:4px 4px 0 0;height:88px;width:100%;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;">
+          <span style="font-size:10px;color:#fff;font-weight:700;">99.69%</span>
+        </div>
+      </div>
+      <div style="text-align:center;flex:1;">
+        <div style="font-size:10px;color:#888;margin-bottom:4px;">6/4</div>
+        <div style="background:#4caf50;border-radius:4px 4px 0 0;height:84px;width:100%;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;">
+          <span style="font-size:10px;color:#fff;font-weight:700;">99.62%</span>
+        </div>
+      </div>
+      <div style="text-align:center;flex:1;">
+        <div style="font-size:10px;color:#888;margin-bottom:4px;">6/5</div>
+        <div style="background:#1a6b3a;border-radius:4px 4px 0 0;height:96px;width:100%;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;">
+          <span style="font-size:10px;color:#fff;font-weight:700;">99.84%</span>
+        </div>
+      </div>
+      <div style="text-align:center;flex:1;">
+        <div style="font-size:10px;color:#888;margin-bottom:4px;">6/6</div>
+        <div style="background:#1a6b3a;border-radius:4px 4px 0 0;height:97px;width:100%;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;">
+          <span style="font-size:10px;color:#fff;font-weight:700;">99.85%</span>
+        </div>
+      </div>
+      <div style="text-align:center;flex:1;">
+        <div style="font-size:10px;color:#888;margin-bottom:4px;">6/7</div>
+        <div style="background:#1a6b3a;border-radius:4px 4px 0 0;height:90px;width:100%;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;">
+          <span style="font-size:10px;color:#fff;font-weight:700;">99.67%</span>
+        </div>
+      </div>
+      <div style="text-align:center;flex:1;">
+        <div style="font-size:10px;color:#888;margin-bottom:4px;">6/8</div>
+        <div style="background:#1a6b3a;border-radius:4px 4px 0 0;height:86px;width:100%;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;">
+          <span style="font-size:10px;color:#fff;font-weight:700;">99.54%</span>
+        </div>
+      </div>
+      <div style="flex:0 0 auto;align-self:center;padding-left:8px;font-size:11px;color:#888;">
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px;"><div style="width:12px;height:12px;background:#ff9800;border-radius:2px;"></div>99%未満</div>
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px;"><div style="width:12px;height:12px;background:#4caf50;border-radius:2px;"></div>99%超</div>
+        <div style="display:flex;align-items:center;gap:4px;"><div style="width:12px;height:12px;background:#1a6b3a;border-radius:2px;"></div>99.5%超</div>
+      </div>
+    </div>
+    <div class="success-box">✅ <strong>6日連続で認証率99%超を達成</strong>（6/3〜6/8）。正規送信元（Google Workspace・Mimecast・lolipop・heteml・docomo）の全件PASSも確認済み。移行条件を満たしています。<br><span style="font-size:11px;margin-top:4px;display:block;">※ 6/2の低下は leverages.jp 等、外部企業からの転送メールによるもの。自社送信の問題ではありません。</span></div>
+  </div>
+</div>
+
+<!-- ========== 変更内容まとめ ========== -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">📋</div><h2>今回の変更内容（お名前.comで2か所）</h2></div>
+  <div class="slide-body">
+
+    <p style="font-size:13px;font-weight:700;color:#0d3b2e;margin-bottom:14px;">🔧 変更するDNSレコード</p>
+
+    <div class="onamae-mock" style="margin-bottom:20px;">
+      <div class="onamae-head">
+        <div class="onamae-title">🌐 お名前.com Navi — DNSレコード設定（adventure-inc.co.jp）</div>
+        <div style="font-size:10px;background:rgba(255,255,255,0.2);border-radius:4px;padding:2px 8px;">登録済レコード　← ここを変更</div>
+      </div>
+      <div class="onamae-body">
+        <div class="dns-row header">
+          <div class="dns-cell">種別</div>
+          <div class="dns-cell">ホスト名</div>
+          <div class="dns-cell">TYPE</div>
+          <div class="dns-cell">TTL</div>
+          <div class="dns-cell">VALUE（レコード値）</div>
+        </div>
+        <!-- SPF 変更前 -->
+        <div class="dns-row current">
+          <div class="dns-cell" style="font-size:10px;color:#b71c1c;">① SPF（変更前）</div>
+          <div class="dns-cell"><span class="dns-val">（空欄）</span></div>
+          <div class="dns-cell"><span class="dns-badge gray">TXT</span></div>
+          <div class="dns-cell"><span class="dns-val">3600</span></div>
+          <div class="dns-cell"><span class="dns-val" style="color:#b71c1c;text-decoration:line-through;">v=spf1 +mx include:_spf.google.com include:spf.makeshop.jp -all</span></div>
+        </div>
+        <!-- SPF 変更後 -->
+        <div class="dns-row change">
+          <div class="dns-cell" style="font-weight:700;color:#e65100;">① SPF（変更後）✏️</div>
+          <div class="dns-cell"><span class="dns-val">（空欄）</span></div>
+          <div class="dns-cell"><span class="dns-badge orange">TXT</span></div>
+          <div class="dns-cell"><span class="dns-val">3600</span></div>
+          <div class="dns-cell"><span class="dns-val" style="font-weight:700;color:#e65100;">v=spf1 +mx include:_spf.google.com include:spf.makeshop.jp ip4:52.194.41.164 -all</span></div>
+        </div>
+        <!-- DMARC 変更前 -->
+        <div class="dns-row current">
+          <div class="dns-cell" style="font-size:10px;color:#b71c1c;">② DMARC（変更前）</div>
+          <div class="dns-cell"><span class="dns-val">_dmarc</span></div>
+          <div class="dns-cell"><span class="dns-badge gray">TXT</span></div>
+          <div class="dns-cell"><span class="dns-val">3600</span></div>
+          <div class="dns-cell"><span class="dns-val" style="color:#b71c1c;text-decoration:line-through;">v=DMARC1; p=none; rua=mailto:info-system@adventure-inc.co.jp</span></div>
+        </div>
+        <!-- DMARC 変更後 -->
+        <div class="dns-row change">
+          <div class="dns-cell" style="font-weight:700;color:#e65100;">② DMARC（変更後）✏️</div>
+          <div class="dns-cell"><span class="dns-val" style="font-weight:700;">_dmarc</span></div>
+          <div class="dns-cell"><span class="dns-badge orange">TXT</span></div>
+          <div class="dns-cell"><span class="dns-val">3600</span></div>
+          <div class="dns-cell"><span class="dns-val" style="font-weight:700;color:#e65100;">v=DMARC1; p=quarantine; pct=10; rua=mailto:info-system@adventure-inc.co.jp; sp=none; aspf=r; adkim=r</span></div>
+        </div>
+      </div>
+    </div>
+
+    <p style="font-size:13px;font-weight:700;color:#0d3b2e;margin-bottom:10px;">🔍 変更ポイントの解説</p>
+    <table class="compare-table">
+      <tr>
+        <th class="th-label">項目</th>
+        <th style="background:#ffebee;color:#b71c1c;padding:8px 12px;border:1px solid #ddd;width:35%;">変更前</th>
+        <th style="background:#e8f5e9;color:#1b5e20;padding:8px 12px;border:1px solid #ddd;width:35%;">変更後</th>
+        <th style="background:#f5f5f5;color:#333;padding:8px 12px;border:1px solid #ddd;">理由</th>
+      </tr>
+      <tr>
+        <th class="th-label">SPF末尾</th>
+        <td class="td-before">-all</td>
+        <td class="td-after">ip4:52.194.41.164 -all</td>
+        <td class="td-reason">Zabbixプロキシ（mail01サーバー）からのアラートメールをSPF PASSにするため。Google Cloud Armor台帳で「zabbixプロキシ」と確認済み。-allはそのまま維持。</td>
+      </tr>
+      <tr>
+        <th class="th-label">p=</th>
+        <td class="td-before">p=none（監視のみ）</td>
+        <td class="td-after">p=quarantine（隔離）</td>
+        <td class="td-reason">FAILしたメールを迷惑メールフォルダへ振り分け。正規メールは全件PASSのため影響なし。</td>
+      </tr>
+      <tr>
+        <th class="th-label">pct=</th>
+        <td class="td-before">（未設定 = 100%）</td>
+        <td class="td-after">pct=10</td>
+        <td class="td-reason">FAILメールの10%のみ適用。段階移行により影響範囲を最小化。1週間後に状況を確認してpct=100へ引き上げ予定。</td>
+      </tr>
+      <tr>
+        <th class="th-label">sp=</th>
+        <td class="td-before">（未設定）</td>
+        <td class="td-after">sp=none</td>
+        <td class="td-reason">サブドメインはポリシー対象外。skyticket.com等のサブドメインへの影響を防止。</td>
+      </tr>
+      <tr>
+        <th class="th-label">aspf= / adkim=</th>
+        <td class="td-before">（未設定 = strict）</td>
+        <td class="td-after">aspf=r / adkim=r</td>
+        <td class="td-reason">緩やかなアライメント（relaxed）。転送メールや一部サービスの誤検知を防止。</td>
+      </tr>
+    </table>
+
+    <div class="warn-box" style="margin-top:14px;">
+      <strong>⚠️ 注意：SPFレコードは1ドメインにつき1件のみ有効</strong><br>
+      <span style="font-size:12px;line-height:1.7;margin-top:4px;display:block;">既存のSPFレコードを<strong>「編集」して上書き</strong>してください。新規追加すると2件になり、SPFが無効化されます。</span>
+    </div>
+  </div>
+</div>
+
+<!-- ========== STEP 1: SPF変更 ========== -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">1</div><h2>お名前.comでSPFレコードを変更する</h2><div class="tag2">約5分</div></div>
+  <div class="slide-body">
+
+    <div class="screen-badge red">🌐 このステップでは「お名前.com Navi」を使います</div>
+
+    <p style="font-size:13px;font-weight:700;color:#0d3b2e;margin-bottom:8px;">📌 お名前.com Naviへのアクセス経路</p>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px;flex-wrap:wrap;">
+      <span style="background:#e0001b;color:#fff;border-radius:4px;padding:3px 8px;font-size:11px;font-weight:700;">onamae.com → ログイン</span>
+      <span style="color:#888;">→</span>
+      <span style="background:#ffebee;border-radius:4px;padding:3px 8px;font-size:11px;font-weight:700;color:#b71c1c;">ドメイン → ドメイン機能一覧</span>
+      <span style="color:#888;">→</span>
+      <span style="background:#ffebee;border-radius:4px;padding:3px 8px;font-size:11px;font-weight:700;color:#b71c1c;">DNSレコード設定</span>
+      <span style="color:#888;">→</span>
+      <span style="background:#e0001b;color:#fff;border-radius:4px;padding:3px 8px;font-size:11px;font-weight:700;">adventure-inc.co.jp を選択</span>
+    </div>
+
+    <div style="background:#e3f2fd;border:2px solid #1565c0;border-radius:8px;padding:14px 16px;margin-bottom:18px;">
+      <div style="font-weight:800;font-size:13px;color:#0d47a1;margin-bottom:8px;">① SPFレコードの変更方法</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <div style="font-size:11px;color:#555;margin-bottom:3px;">変更するホスト名</div>
+          <div style="background:#fff;border:1px solid #90b0f0;border-radius:4px;padding:6px 10px;font-family:monospace;font-size:12px;font-weight:700;color:#0d47a1;">（空欄のTXTレコード）</div>
+          <div style="font-size:10px;color:#888;margin-top:3px;">※ v=spf1 で始まる既存のTXTレコードを探す</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:#555;margin-bottom:3px;">変更後のレコード値（コピー＆ペーストOK）</div>
+          <div style="background:#fff;border:2px solid #fbc02d;border-radius:4px;padding:6px 10px;font-family:monospace;font-size:10px;color:#5d4037;word-break:break-all;font-weight:700;">v=spf1 +mx include:_spf.google.com include:spf.makeshop.jp ip4:52.194.41.164 -all</div>
+          <div style="font-size:10px;color:#c62828;margin-top:3px;font-weight:700;">⚠️ 新規追加ではなく「編集」で上書きすること</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-item"><div class="si-num">1</div><div class="si-text">お名前.com Navi にログインし、<strong>ドメイン → ドメイン機能一覧 → DNSレコード設定</strong> へ進みます。</div></div>
+    <div class="step-item"><div class="si-num">2</div><div class="si-text">「adventure-inc.co.jp」を選択して<strong>「次へ」</strong>をクリックします。</div></div>
+    <div class="step-item"><div class="si-num">3</div><div class="si-text"><strong>「登録済レコード」タブ</strong>を開き、現在のSPFレコード（<code style="font-size:11px;background:#f5f5f5;padding:1px 5px;border-radius:2px;">v=spf1 +mx include:_spf.google.com...</code>）の行を探します。</div></div>
+    <div class="step-item"><div class="si-num">4</div><div class="si-text">該当レコードの<strong>「変更」または鉛筆アイコン</strong>をクリックして編集画面を開きます。</div></div>
+    <div class="step-item"><div class="si-num">5</div><div class="si-text">VALUE欄を以下に書き換えます：<br><code style="font-size:11px;background:#e8f5e9;padding:3px 8px;border-radius:3px;font-weight:700;color:#1b5e20;display:inline-block;margin-top:4px;">v=spf1 +mx include:_spf.google.com include:spf.makeshop.jp ip4:52.194.41.164 -all</code></div></div>
+    <div class="step-item"><div class="si-num">6</div><div class="si-text"><strong>「確認画面へ進む」→「設定する」</strong>をクリックして変更を確定します。</div></div>
+
+    <div class="success-box" style="margin-top:12px;">✅ SPFレコードの変更が完了したら、続けてSTEP 2（DMARCの変更）に進んでください。</div>
+  </div>
+  <div class="slide-support">🆘 お名前.comへのログイン情報は Slack <strong>#help_社内システム</strong> または管理者にお問い合わせください</div>
+</div>
+
+<!-- ========== STEP 2: DMARC変更 ========== -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">2</div><h2>お名前.comでDMARCレコードを変更する</h2><div class="tag2">約5分</div></div>
+  <div class="slide-body">
+
+    <div class="screen-badge red">🌐 このステップでは「お名前.com Navi」を使います（STEP 1の続き）</div>
+
+    <div style="background:#e8f5e9;border:2px solid #4caf50;border-radius:8px;padding:14px 16px;margin-bottom:18px;">
+      <div style="font-weight:800;font-size:13px;color:#1b5e20;margin-bottom:8px;">② DMARCレコードの変更方法（p=quarantine pct=10）</div>
+      <div style="display:grid;grid-template-columns:1fr 2fr;gap:10px;">
+        <div>
+          <div style="font-size:11px;color:#555;margin-bottom:3px;">変更するホスト名</div>
+          <div style="background:#fff;border:1px solid #90d0a0;border-radius:4px;padding:6px 10px;font-family:monospace;font-size:12px;font-weight:700;color:#1b5e20;">_dmarc</div>
+          <div style="font-size:10px;color:#888;margin-top:3px;">※ アンダーバーあり</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:#555;margin-bottom:3px;">変更後のレコード値（コピー＆ペーストOK）</div>
+          <div style="background:#fff;border:2px solid #4caf50;border-radius:4px;padding:6px 10px;font-family:monospace;font-size:10px;font-weight:700;color:#1b5e20;word-break:break-all;">v=DMARC1; p=quarantine; pct=10; rua=mailto:info-system@adventure-inc.co.jp; sp=none; aspf=r; adkim=r</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;background:#f1fff4;border-radius:6px;padding:8px 12px;font-size:11px;color:#1b5e20;">
+        💡 <strong>pct=10</strong> とは？ → 「DMARCポリシー（隔離）をFAILメールの10%のみに適用する」という設定です。<br>
+        まず小さく試し、問題なければ1週間後に pct=100 へ引き上げます。正規メールへの影響はありません。
+      </div>
+    </div>
+
+    <div class="step-item"><div class="si-num">1</div><div class="si-text">STEP 1と同じ画面（DNSレコード設定）で、<strong>「登録済レコード」タブ</strong>から <code style="font-size:11px;background:#f5f5f5;padding:1px 5px;">_dmarc</code> のTXTレコードを探します。</div></div>
+    <div class="step-item"><div class="si-num">2</div><div class="si-text">該当レコードの<strong>「変更」</strong>をクリックして編集画面を開きます。</div></div>
+    <div class="step-item"><div class="si-num">3</div><div class="si-text">VALUE欄を以下に書き換えます：<br><code style="font-size:10px;background:#e8f5e9;padding:3px 8px;border-radius:3px;font-weight:700;color:#1b5e20;display:inline-block;margin-top:4px;word-break:break-all;">v=DMARC1; p=quarantine; pct=10; rua=mailto:info-system@adventure-inc.co.jp; sp=none; aspf=r; adkim=r</code></div></div>
+    <div class="step-item"><div class="si-num">4</div><div class="si-text"><strong>「確認画面へ進む」→「設定する」</strong>をクリックして変更を確定します。</div></div>
+
+    <div class="important-box" style="margin-top:12px;">
+      <div class="i-title">⏳ DNS反映まで待機（通常30分〜数時間、最大48時間）</div>
+      <p style="font-size:12px;color:#7b3a00;line-height:1.7;">設定後すぐには反映されません。反映完了後にSTEP 3（確認）へ進んでください。<br>この間は操作不要です。</p>
+    </div>
+  </div>
+  <div class="slide-support">🆘 設定方法が分からない場合は Slack <strong>#help_社内システム</strong> へ連絡してください</div>
+</div>
+
+<!-- ========== DNS反映確認 ========== -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">⏳</div><h2>DNS反映の確認（STEP 3の前に必ず確認）</h2><div class="tag2">30分〜数時間後</div></div>
+  <div class="slide-body">
+
+    <div class="screen-badge" style="background:#0d47a1;">💻 このステップでは「ターミナル / コマンドプロンプト」を使います</div>
+
+    <p style="font-size:13px;color:#444;margin-bottom:16px;">お名前.comへの変更後、DNS反映を確認してからSTEP 3（動作確認）へ進んでください。</p>
+
+    <div class="two-col" style="margin-bottom:16px;">
+      <div>
+        <p style="font-size:12px;font-weight:700;color:#0d3b2e;margin-bottom:6px;">① SPFレコードの反映確認</p>
+        <div class="terminal">
+          <div class="terminal-bar">
+            <div class="t-dot r"></div><div class="t-dot y"></div><div class="t-dot g"></div>
+            <div class="t-title">ターミナル / コマンドプロンプト</div>
+          </div>
+          <div class="terminal-body">
+            <div><span class="t-prompt">$ </span><span class="t-cmd">dig TXT adventure-inc.co.jp +short</span></div>
+            <div style="margin-top:6px;margin-bottom:4px;"><span class="t-comment"># ↓ 反映済みの場合（ip4:52.194.41.164 が含まれること）</span></div>
+            <div><span class="t-val">"v=spf1 +mx include:_spf.google.com</span></div>
+            <div><span class="t-val"> include:spf.makeshop.jp ip4:52.194.41.164 -all"</span></div>
+            <div style="margin-top:6px;"><span class="t-ok">✓ ip4:52.194.41.164 が含まれれば反映完了！</span></div>
+            <div style="margin-top:8px;"><span class="t-comment"># Windowsの場合</span></div>
+            <div><span class="t-prompt">> </span><span class="t-cmd">nslookup -type=TXT adventure-inc.co.jp</span></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p style="font-size:12px;font-weight:700;color:#0d3b2e;margin-bottom:6px;">② DMARCレコードの反映確認</p>
+        <div class="terminal">
+          <div class="terminal-bar">
+            <div class="t-dot r"></div><div class="t-dot y"></div><div class="t-dot g"></div>
+            <div class="t-title">ターミナル / コマンドプロンプト</div>
+          </div>
+          <div class="terminal-body">
+            <div><span class="t-prompt">$ </span><span class="t-cmd">dig TXT _dmarc.adventure-inc.co.jp +short</span></div>
+            <div style="margin-top:6px;margin-bottom:4px;"><span class="t-comment"># ↓ 反映済みの場合（p=quarantine が含まれること）</span></div>
+            <div><span class="t-val">"v=DMARC1; p=quarantine; pct=10;</span></div>
+            <div><span class="t-val"> rua=mailto:info-system@..."</span></div>
+            <div style="margin-top:6px;"><span class="t-ok">✓ p=quarantine が含まれれば反映完了！</span></div>
+            <div style="margin-top:8px;"><span class="t-comment"># Windowsの場合</span></div>
+            <div><span class="t-prompt">> </span><span class="t-cmd">nslookup -type=TXT _dmarc.adventure-inc.co.jp</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="important-box">
+      <div class="i-title">⚠️ コマンドが使えない場合の代替確認方法</div>
+      <p style="font-size:12px;color:#7b3a00;line-height:1.7;"><a href="https://mxtoolbox.com/SuperTool.aspx" style="color:#1565c0;font-weight:700;">MXToolbox SuperTool</a> にアクセスし、「DMARC Lookup」に <span class="code-inline">adventure-inc.co.jp</span> を入力して検索。<code>p=quarantine</code> が表示されれば反映完了です。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ========== STEP 3: 動作確認 ========== -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">3</div><h2>動作確認（DNS反映後）</h2><div class="tag2">約10分</div></div>
+  <div class="slide-body">
+
+    <div class="screen-badge">🖥️ このステップでは「Gmail」を使います</div>
+
+    <p style="font-size:13px;font-weight:700;color:#0d3b2e;margin-bottom:10px;">📌 Gmailでの認証確認（SPF / DKIM / DMARC がすべてPASS）</p>
+
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px;overflow-x:auto;">
+      <div style="flex:0 0 auto;text-align:center;min-width:120px;">
+        <div style="background:#f0f4ff;border-radius:8px;padding:10px;border:1px solid #90b0f0;font-size:11px;">
+          <div style="font-size:20px;margin-bottom:4px;">📤</div>
+          <div style="font-weight:700;">①</div>
+          <div>adventure-inc.co.jp の<br>アカウントから<br>テストメールを送信</div>
+        </div>
+      </div>
+      <div style="font-size:22px;color:#1a6b3a;font-weight:700;flex-shrink:0;">→</div>
+      <div style="flex:0 0 auto;text-align:center;min-width:120px;">
+        <div style="background:#f0f4ff;border-radius:8px;padding:10px;border:1px solid #90b0f0;font-size:11px;">
+          <div style="font-size:20px;margin-bottom:4px;">📬</div>
+          <div style="font-weight:700;">②</div>
+          <div>受信側Gmailで<br>該当メールを開く</div>
+        </div>
+      </div>
+      <div style="font-size:22px;color:#1a6b3a;font-weight:700;flex-shrink:0;">→</div>
+      <div style="flex:0 0 auto;text-align:center;min-width:140px;">
+        <div style="background:#f0f4ff;border-radius:8px;padding:10px;border:1px solid #90b0f0;font-size:11px;">
+          <div style="font-size:20px;margin-bottom:4px;">⋮</div>
+          <div style="font-weight:700;">③</div>
+          <div>右上「…」→<br>「<strong>メッセージのソースを表示</strong>」</div>
+        </div>
+      </div>
+      <div style="font-size:22px;color:#1a6b3a;font-weight:700;flex-shrink:0;">→</div>
+      <div style="flex:1;min-width:220px;">
+        <div style="font-size:10px;font-weight:700;color:#e65100;margin-bottom:4px;text-align:center;">④ Authentication-Results を確認</div>
+        <div style="background:#202124;border-radius:10px;overflow:hidden;font-size:10px;">
+          <div style="background:#303134;padding:8px 12px;display:flex;align-items:center;gap:8px;">
+            <div style="font-size:11px;font-weight:700;color:#e8eaed;">📧 メッセージのソース — adventure-inc.co.jp</div>
+          </div>
+          <div style="padding:12px 16px;font-family:monospace;font-size:10px;line-height:1.8;">
+            <div><span style="color:#8ab4f8;">Authentication-Results:</span> <span style="color:#e6db74;">mx.google.com;</span></div>
+            <div style="padding-left:14px;"><span style="color:#8ab4f8;">spf=</span><span style="color:#81c995;font-weight:700;">pass</span></div>
+            <div style="padding-left:14px;"><span style="color:#8ab4f8;">dkim=</span><span style="color:#81c995;font-weight:700;">pass</span></div>
+            <div style="padding-left:14px;"><span style="color:#8ab4f8;">dmarc=</span><span style="color:#81c995;font-weight:700;">pass</span> <span style="color:#e6db74;">(p=QUARANTINE ...)</span></div>
+            <div style="margin-top:6px;color:#9e9e9e;font-style:italic;">← 3つすべてが pass ＆ p=QUARANTINE で設定完了！</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="success-box">
+      🎉 <strong>spf=pass、dkim=pass、dmarc=pass（p=QUARANTINE）の3つがすべて確認できれば移行完了です！</strong><br>
+      <span style="font-size:12px;margin-top:4px;display:block;">info-system@adventure-inc.co.jp 宛に<strong>DMARCレポートが引き続き届きます</strong>。1週間後に認証率を確認し、問題なければ pct=10 → pct=100 に引き上げます。</span>
+    </div>
+  </div>
+  <div class="slide-support">🆘 dmarc=fail が続く場合は Slack <strong>#help_社内システム</strong> へ（当日中対応）</div>
+</div>
+
+<!-- ========== 移行後の監視 ========== -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">📈</div><h2>移行後の監視と今後のロードマップ</h2></div>
+  <div class="slide-body">
+
+    <p style="font-size:13px;font-weight:700;color:#0d3b2e;margin-bottom:10px;">📊 1週間の監視ポイント</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+      <div style="background:#ffebee;border:2px solid #e53935;border-radius:8px;padding:12px 14px;">
+        <div style="font-weight:800;font-size:12px;color:#b71c1c;margin-bottom:6px;">🚨 この報告があれば即ロールバック</div>
+        <div style="font-size:11px;color:#c62828;line-height:1.7;">「正規のメールが迷惑メールフォルダに入った」という報告<br>→ p=none に戻し、原因を調査</div>
+      </div>
+      <div style="background:#e8f5e9;border:2px solid #4caf50;border-radius:8px;padding:12px 14px;">
+        <div style="font-weight:800;font-size:12px;color:#1b5e20;margin-bottom:6px;">✅ 問題なし = pct=100 へ引き上げ</div>
+        <div style="font-size:11px;color:#2e7d32;line-height:1.7;">1週間後にDMARCレポートを確認し、認証率99%以上かつ苦情なしであれば pct=10 → pct=100 に変更</div>
+      </div>
+    </div>
+
+    <p style="font-size:13px;font-weight:700;color:#0d3b2e;margin-bottom:10px;">🗺 今後のロードマップ</p>
+    <div class="roadmap">
+      <div class="rm-phase">
+        <div class="rm-head" style="background:#4caf50;">Phase 1 完了：p=none 監視</div>
+        <div class="rm-body">
+          ・6/3〜6/9 で実施済み<br>
+          ・認証率99%超×6日連続達成<br>
+          ・送信元の洗い出し完了<br>
+          ・Zabbix IP特定済み
+          <div class="rm-now">✅ 達成</div>
+        </div>
+      </div>
+      <div class="rm-phase">
+        <div class="rm-head" style="background:#e65100;">Phase 2：p=quarantine ← 今ここ</div>
+        <div class="rm-body">
+          ・<strong>今回 pct=10 で開始</strong><br>
+          ・1週間後に pct=100 へ<br>
+          ・2週間安定稼働を確認<br>
+          ・苦情ゼロを確認
+          <div class="rm-now">← 今回の作業</div>
+        </div>
+      </div>
+      <div class="rm-phase">
+        <div class="rm-head" style="background:#1565c0;">Phase 3：p=reject（7月中旬〜）</div>
+        <div class="rm-body">
+          ・なりすまし完全ブロック<br>
+          ・Googleガイドライン完全準拠<br>
+          ・Phase 2安定後に移行<br>
+          ・月次レポートで継続監視
+        </div>
+      </div>
+    </div>
+
+    <p style="font-size:13px;font-weight:700;color:#0d3b2e;margin:20px 0 10px;">✅ 作業完了チェックリスト</p>
+    <div class="checklist-item"><div class="check-box"></div><span>STEP 1：SPFレコードに ip4:52.194.41.164 を追加して保存した</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>STEP 2：DMARCレコードを p=quarantine pct=10 に変更して保存した</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>DNS反映確認：nslookup / dig で SPF に 52.194.41.164 が含まれることを確認した</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>DNS反映確認：nslookup / dig で DMARC が p=quarantine になっていることを確認した</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>STEP 3：テストメールで spf=pass / dkim=pass / dmarc=pass（p=QUARANTINE）を確認した</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>1週間後：「正規メールが迷惑メールに入った」という報告がないことを確認した</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>1週間後：認証率99%以上を維持していることをDMARCレポートで確認した</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>（問題なければ）pct=10 → pct=100 への変更を実施した</span></div>
+  </div>
+  <div class="slide-support">📬 DMARCレポートは info-system@adventure-inc.co.jp に届きます。週次で内容を確認してください。</div>
+</div>
+
+<!-- ========== 緊急ロールバック ========== -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">🔄</div><h2>緊急ロールバック手順（設定を元に戻す場合）</h2><div class="tag2">緊急時対応</div></div>
+  <div class="slide-body">
+
+    <div class="danger-box" style="margin-bottom:20px;">
+      <strong>⚠️ ロールバックが必要になるケース</strong><br>
+      <span style="font-size:12px;line-height:1.8;margin-top:4px;display:block;">
+        「正規のメールが迷惑メールに入った」という報告を受けた場合、または新規の正規送信元がDMARC FAILしていることが判明した場合は、直ちに以下の手順で p=none に戻してください。
+      </span>
+    </div>
+
+    <p style="font-size:13px;font-weight:700;color:#c62828;margin-bottom:14px;">🔁 ロールバック手順</p>
+
+    <div class="step-item"><div class="si-num" style="background:linear-gradient(135deg,#c62828,#b71c1c);">1</div><div class="si-text">お名前.com Navi にログインし、DNSレコード設定へ進みます。</div></div>
+    <div class="step-item"><div class="si-num" style="background:linear-gradient(135deg,#c62828,#b71c1c);">2</div><div class="si-text"><strong>_dmarc TXTレコードを編集</strong>し、VALUE欄を以下に変更します：<br><code style="font-size:11px;background:#ffebee;padding:3px 8px;border-radius:3px;font-weight:700;color:#b71c1c;display:inline-block;margin-top:4px;">v=DMARC1; p=none; rua=mailto:info-system@adventure-inc.co.jp</code></div></div>
+    <div class="step-item"><div class="si-num" style="background:linear-gradient(135deg,#c62828,#b71c1c);">3</div><div class="si-text"><strong>「確認画面へ進む」→「設定する」</strong>をクリックして変更を確定します。</div></div>
+    <div class="step-item"><div class="si-num" style="background:linear-gradient(135deg,#c62828,#b71c1c);">4</div><div class="si-text">DNS反映後（最大TTL時間＝3600秒）に nslookup で p=none に戻っていることを確認します。</div></div>
+    <div class="step-item"><div class="si-num" style="background:linear-gradient(135deg,#c62828,#b71c1c);">5</div><div class="si-text">DMARCレポートで新たに現れたFAILの送信元を特定し、SPF/DKIMの追加設定を実施後、再度 p=quarantine への移行を試みます。</div></div>
+
+    <div class="warn-box" style="margin-top:16px;">
+      <strong>⚠️ SPFレコードはロールバック不要</strong><br>
+      <span style="font-size:12px;line-height:1.7;margin-top:4px;display:block;">
+        Zabbixプロキシ（ip4:52.194.41.164）の追加はロールバック対象外です。SPFは今後もそのまま使用します。
+      </span>
+    </div>
+  </div>
+  <div class="slide-support">🆘 ロールバック作業中に問題が発生した場合は Slack <strong>#help_社内システム</strong> へ即時連絡してください</div>
+</div>
+
+</body>
+</html>

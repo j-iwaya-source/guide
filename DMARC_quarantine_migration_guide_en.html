@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DMARC Migration Guide — p=quarantine</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f4f8; color:#1a1a2e; }
+
+/* ─── Cover ─── */
+.cover {
+  background: linear-gradient(135deg,#0d3b2e 0%,#1a6b3a 50%,#0a5a7a 100%);
+  min-height:480px; display:flex; align-items:center; justify-content:space-between;
+  padding:48px 64px; gap:40px; margin-bottom:32px; position:relative; overflow:hidden;
+}
+.cover::before { content:''; position:absolute; inset:0;
+  background: radial-gradient(circle at 30% 50%, rgba(0,200,100,0.15) 0%, transparent 60%),
+              radial-gradient(circle at 70% 30%, rgba(100,200,255,0.1) 0%, transparent 50%); }
+.cover-left { flex:1; position:relative; z-index:1; }
+.cover-icon { font-size:100px; line-height:1; filter:drop-shadow(0 0 30px rgba(0,220,120,0.5)); }
+.cover-right { flex:1.2; position:relative; z-index:1; color:#fff; }
+.cover-tag { background:rgba(255,200,0,0.9); color:#1a1a2e; font-size:13px; font-weight:700; padding:4px 14px; border-radius:4px; display:inline-block; margin-bottom:16px; }
+.cover-right h1 { font-size:36px; font-weight:900; line-height:1.3; margin-bottom:12px; text-shadow:0 2px 8px rgba(0,0,0,0.3); }
+.cover-right .cover-sub { font-size:12px; opacity:0.8; margin-bottom:16px; }
+.cover-right .cover-desc { font-size:13px; line-height:1.8; background:rgba(255,255,255,0.1); border-radius:8px; padding:14px; border-left:3px solid #00d4a0; margin-bottom:16px; }
+.cover-right .cover-desc strong { color:#ffd700; }
+.support-banner { background:rgba(255,255,255,0.15); border:2px solid #ffd700; border-radius:10px; padding:12px 16px; margin-bottom:16px; display:flex; align-items:center; gap:12px; }
+.support-banner .sb-icon { font-size:24px; flex-shrink:0; }
+.support-banner .sb-text { font-size:12px; line-height:1.6; }
+.support-banner .sb-text strong { color:#ffd700; font-size:13px; }
+.time-bar { background:rgba(255,255,255,0.1); border-radius:10px; padding:12px 16px; border:1px solid rgba(255,255,255,0.2); }
+.time-bar .tb-title { font-size:12px; font-weight:700; color:#ffd700; margin-bottom:8px; }
+.time-steps { display:flex; gap:0; }
+.ts { flex:1; text-align:center; padding:6px 4px; border-right:1px solid rgba(255,255,255,0.2); }
+.ts:last-child { border-right:none; }
+.ts .ts-step { font-size:9px; opacity:0.7; }
+.ts .ts-min { font-size:14px; font-weight:900; color:#ffd700; }
+.ts .ts-label { font-size:9px; opacity:0.8; }
+.time-total { font-size:11px; margin-top:8px; text-align:right; opacity:0.85; }
+
+/* ─── Slide common ─── */
+.slide { background:#fff; margin:0 auto 32px; max-width:1000px; border-radius:16px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,0.10); }
+.slide-head { background:linear-gradient(90deg,#0d3b2e,#1a6b3a); color:#fff; padding:18px 36px; display:flex; align-items:center; gap:14px; }
+.slide-head .snum { background:rgba(255,255,255,0.2); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:900; flex-shrink:0; }
+.slide-head h2 { font-size:22px; font-weight:800; }
+.slide-head .tag2 { margin-left:auto; background:rgba(255,200,0,0.9); color:#1a1a2e; font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; white-space:nowrap; }
+.slide-body { padding:32px 36px; }
+
+/* ─── Color boxes ─── */
+.warn-box { background:#fff3cd; border:2px solid #ffc107; border-radius:8px; padding:12px 16px; font-size:13px; color:#7b4800; }
+.warn-box strong { color:#c62828; }
+.important-box { background:#fff3e0; border:2px solid #ff9800; border-radius:8px; padding:12px 16px; font-size:13px; color:#7b3a00; }
+.important-box .i-title { font-weight:800; color:#e65100; margin-bottom:6px; font-size:14px; }
+.success-box { background:#e8f5e9; border:2px solid #4caf50; border-radius:8px; padding:12px 16px; font-size:13px; color:#1b5e20; margin-top:8px; }
+.info-box { background:#e3f2fd; border:2px solid #1565c0; border-radius:8px; padding:12px 16px; font-size:13px; color:#0d47a1; margin-top:8px; }
+.danger-box { background:#ffebee; border:2px solid #c62828; border-radius:8px; padding:14px 16px; font-size:13px; color:#c62828; }
+.slide-support { background:#f0fff4; border-top:2px dashed #90d0a0; padding:10px 20px; font-size:12px; color:#1b5e20; display:flex; align-items:center; gap:8px; }
+.slide-support strong { color:#c62828; }
+
+/* ─── Steps ─── */
+.step-item { display:flex; gap:12px; align-items:flex-start; margin-bottom:10px; }
+.si-num { background:linear-gradient(135deg,#1a6b3a,#0d3b2e); color:#fff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:900; flex-shrink:0; margin-top:1px; }
+.si-text { font-size:13px; line-height:1.7; color:#333; }
+.si-text strong { color:#0d3b2e; background:#e8f8ee; padding:1px 5px; border-radius:3px; }
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+
+/* ─── Terminal ─── */
+.terminal { background:#1e1e1e; border-radius:10px; overflow:hidden; font-size:11px; }
+.terminal-bar { background:#333; padding:6px 10px; display:flex; align-items:center; gap:5px; }
+.t-dot { width:10px; height:10px; border-radius:50%; }
+.t-dot.r { background:#ff5f56; }
+.t-dot.y { background:#ffbd2e; }
+.t-dot.g { background:#27c93f; }
+.t-title { font-size:10px; color:#aaa; margin-left:6px; }
+.terminal-body { padding:10px 14px; font-family:monospace; line-height:1.8; }
+.t-prompt { color:#27c93f; }
+.t-cmd { color:#f8f8f2; }
+.t-comment { color:#75715e; }
+.t-ok { color:#a6e22e; font-weight:700; }
+.t-val { color:#e6db74; }
+
+/* ─── Onamae.com DNS mock ─── */
+.onamae-mock { background:#fff; border-radius:10px; border:2px solid #e0001b; overflow:hidden; font-size:11px; }
+.onamae-head { background:#e0001b; color:#fff; padding:7px 12px; display:flex; align-items:center; justify-content:space-between; }
+.onamae-title { font-weight:700; font-size:12px; }
+.onamae-body { padding:10px 12px; }
+.dns-row { display:grid; grid-template-columns:1.4fr 1.2fr 0.5fr 0.5fr 3fr; gap:0; margin-bottom:4px; font-size:10px; }
+.dns-row.header { background:#f0f4f8; font-weight:700; color:#444; border-radius:4px 4px 0 0; }
+.dns-cell { padding:5px 7px; border-bottom:1px solid #eee; display:flex; align-items:center; }
+.dns-row.current .dns-cell { background:#f9f9f9; }
+.dns-row.change .dns-cell { background:#fff8e1; border-left:3px solid #fbc02d; }
+.dns-val { font-family:monospace; font-size:9px; color:#333; word-break:break-all; }
+.dns-badge { background:#4caf50; color:#fff; border-radius:3px; padding:1px 5px; font-size:9px; font-weight:700; }
+.dns-badge.blue { background:#1565c0; }
+.dns-badge.orange { background:#ff9800; }
+.dns-badge.gray { background:#888; }
+
+/* ─── Screen badge ─── */
+.screen-badge { display:inline-flex; align-items:center; gap:6px; background:#0d3b2e; color:#fff; border-radius:20px; padding:5px 14px; font-size:12px; font-weight:700; margin-bottom:14px; }
+.screen-badge.red { background:#b71c1c; }
+
+/* ─── Roadmap ─── */
+.roadmap { display:flex; gap:0; align-items:stretch; margin:16px 0; }
+.rm-phase { flex:1; border-radius:0; overflow:hidden; border:1px solid #e0e0e0; }
+.rm-phase:first-child { border-radius:8px 0 0 8px; }
+.rm-phase:last-child { border-radius:0 8px 8px 0; }
+.rm-head { padding:8px 12px; color:#fff; font-size:11px; font-weight:800; }
+.rm-body { padding:10px 12px; font-size:10px; color:#444; line-height:1.7; background:#fff; }
+.rm-now { background:#ffd700; color:#1a1a1a; font-size:9px; font-weight:700; padding:2px 8px; border-radius:10px; margin-top:6px; display:inline-block; }
+
+/* ─── Misc ─── */
+.code-inline { font-family:monospace; font-size:12px; background:#f5f5f5; border:1px solid #ddd; border-radius:3px; padding:1px 7px; color:#1b5e20; font-weight:700; }
+.checklist-item { background:#f8f8f8; border:1px solid #ddd; border-radius:8px; padding:10px 14px; font-size:12px; color:#333; display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.check-box { width:18px; height:18px; border:2px solid #1a6b3a; border-radius:3px; flex-shrink:0; }
+.compare-table { width:100%; border-collapse:collapse; font-size:12px; margin-bottom:16px; }
+.compare-table th { padding:8px 12px; text-align:left; border:1px solid #ddd; }
+.compare-table td { padding:8px 12px; border:1px solid #ddd; vertical-align:top; }
+.compare-table .th-label { background:#455a64; color:#fff; width:120px; }
+.compare-table .td-before { background:#ffebee; color:#b71c1c; font-family:monospace; font-size:11px; }
+.compare-table .td-after { background:#e8f5e9; color:#1b5e20; font-family:monospace; font-size:11px; font-weight:700; }
+.compare-table .td-reason { background:#f5f5f5; font-size:11px; color:#444; line-height:1.7; }
+
+@media print {
+  body { background:#fff; }
+  .cover, .slide { box-shadow:none; margin:0; border-radius:0; }
+  .cover { min-height:unset !important; padding:32px 48px !important; break-inside:avoid; page-break-inside:avoid; }
+  .slide { break-before:page; page-break-before:always; break-inside:avoid; page-break-inside:avoid; margin-bottom:0 !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- ========== Cover ========== -->
+<div class="cover">
+  <div class="cover-left"><div class="cover-icon">🔒</div></div>
+  <div class="cover-right">
+    <div class="cover-tag">【Corporate IT Section — Work Procedure】</div>
+    <h1>DMARC Migration Guide<br>p=none → p=quarantine</h1>
+    <div class="cover-sub">Issued by: Corporate IT Section　｜　Domain: adventure-inc.co.jp　｜　June 10, 2026</div>
+    <div class="cover-desc">
+      Authentication rate exceeded 99% for 6 consecutive days. <strong>Migrating DMARC to p=quarantine (quarantine mode).</strong><br>
+      The Zabbix proxy IP (52.194.41.164) will also be added to the SPF record.<br>
+      <strong>With pct=10, only 10% of FAIL messages will be quarantined — minimal impact.</strong>
+    </div>
+    <div class="support-banner">
+      <div class="sb-icon">🆘</div>
+      <div class="sb-text">
+        <strong>Need help? → Slack: #help_社内システム</strong><br>
+        DNS settings and emergency rollbacks handled <strong>same day</strong>.
+      </div>
+    </div>
+    <div class="time-bar">
+      <div class="tb-title">⏱ Estimated Work Time</div>
+      <div class="time-steps">
+        <div class="ts"><div class="ts-step">Pre-check</div><div class="ts-min">5 min</div><div class="ts-label">Verify DNS</div></div>
+        <div class="ts"><div class="ts-step">STEP 1</div><div class="ts-min">5 min</div><div class="ts-label">Update SPF</div></div>
+        <div class="ts"><div class="ts-step">STEP 2</div><div class="ts-min">5 min</div><div class="ts-label">Update DMARC</div></div>
+        <div class="ts"><div class="ts-step">Wait</div><div class="ts-min">~hours</div><div class="ts-label">DNS propagation</div></div>
+        <div class="ts"><div class="ts-step">STEP 3</div><div class="ts-min">10 min</div><div class="ts-label">Verify</div></div>
+      </div>
+      <div class="time-total">Total hands-on time: approx. 15–20 minutes</div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== Current Status & Rationale ========== -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">0</div><h2>Current Configuration & Migration Rationale</h2><div class="tag2">Review — 5 min</div></div>
+  <div class="slide-body">
+
+    <p style="font-size:13px;font-weight:700;color:#0d3b2e;margin-bottom:12px;">📋 Current DNS configuration for adventure-inc.co.jp (before changes)</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px;">
+      <div style="border:2px solid #4caf50;border-radius:10px;overflow:hidden;">
+        <div style="background:#4caf50;color:#fff;padding:7px 12px;font-weight:700;font-size:12px;">SPF ✅ Configured</div>
+        <div style="padding:10px 12px;font-size:11px;line-height:1.7;background:#f1fff4;">
+          <div style="font-family:monospace;font-size:10px;background:#fff;border:1px solid #ddd;border-radius:4px;padding:5px 8px;margin-bottom:6px;word-break:break-all;">v=spf1 +mx include:_spf.google.com include:spf.makeshop.jp -all</div>
+          <div style="color:#b71c1c;font-weight:700;font-size:10px;">⚠️ Zabbix proxy (52.194.41.164) is missing<br>→ Will be added in this procedure</div>
+        </div>
+      </div>
+      <div style="border:2px solid #4caf50;border-radius:10px;overflow:hidden;">
+        <div style="background:#4caf50;color:#fff;padding:7px 12px;font-weight:700;font-size:12px;">DKIM ✅ Configured</div>
+        <div style="padding:10px 12px;font-size:11px;line-height:1.7;background:#f1fff4;">
+          <div style="font-size:11px;color:#1b5e20;">DKIM record set on google._domainkey.adventure-inc.co.jp. All outbound mail confirmed PASS.</div>
+          <div style="margin-top:6px;background:#e8f5e9;border-radius:4px;padding:4px 8px;font-size:10px;font-weight:700;color:#1b5e20;">→ No changes needed</div>
+        </div>
+      </div>
+      <div style="border:2px solid #ff9800;border-radius:10px;overflow:hidden;">
+        <div style="background:#ff9800;color:#fff;padding:7px 12px;font-weight:700;font-size:12px;">DMARC ⚠️ Monitor mode</div>
+        <div style="padding:10px 12px;font-size:11px;line-height:1.7;background:#fff8e1;">
+          <div style="font-family:monospace;font-size:10px;background:#fff;border:1px solid #ddd;border-radius:4px;padding:5px 8px;margin-bottom:6px;word-break:break-all;">v=DMARC1; p=none; rua=mailto:info-system@adventure-inc.co.jp</div>
+          <div style="color:#e65100;font-weight:700;font-size:10px;">→ Changing to p=quarantine pct=10 today</div>
+        </div>
+      </div>
+    </div>
+
+    <p style="font-size:13px;font-weight:700;color:#0d3b2e;margin-bottom:10px;">📊 Authentication Rate Trend (basis for migration decision)</p>
+    <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:16px;background:#f8f8f8;border-radius:10px;padding:16px 20px;">
+      <div style="text-align:center;flex:1;"><div style="font-size:10px;color:#888;margin-bottom:4px;">6/1</div><div style="background:#4caf50;border-radius:4px 4px 0 0;height:80px;width:100%;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;"><span style="font-size:10px;color:#fff;font-weight:700;">99.39%</span></div></div>
+      <div style="text-align:center;flex:1;"><div style="font-size:10px;color:#888;margin-bottom:4px;">6/2</div><div style="background:#ff9800;border-radius:4px 4px 0 0;height:55px;width:100%;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;"><span style="font-size:10px;color:#fff;font-weight:700;">97.95%</span></div></div>
+      <div style="text-align:center;flex:1;"><div style="font-size:10px;color:#888;margin-bottom:4px;">6/3</div><div style="background:#4caf50;border-radius:4px 4px 0 0;height:88px;width:100%;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;"><span style="font-size:10px;color:#fff;font-weight:700;">99.69%</span></div></div>
+      <div style="text-align:center;flex:1;"><div style="font-size:10px;color:#888;margin-bottom:4px;">6/4</div><div style="background:#4caf50;border-radius:4px 4px 0 0;height:84px;width:100%;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;"><span style="font-size:10px;color:#fff;font-weight:700;">99.62%</span></div></div>
+      <div style="text-align:center;flex:1;"><div style="font-size:10px;color:#888;margin-bottom:4px;">6/5</div><div style="background:#1a6b3a;border-radius:4px 4px 0 0;height:96px;width:100%;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;"><span style="font-size:10px;color:#fff;font-weight:700;">99.84%</span></div></div>
+      <div style="text-align:center;flex:1;"><div style="font-size:10px;color:#888;margin-bottom:4px;">6/6</div><div style="background:#1a6b3a;border-radius:4px 4px 0 0;height:97px;width:100%;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;"><span style="font-size:10px;color:#fff;font-weight:700;">99.85%</span></div></div>
+      <div style="text-align:center;flex:1;"><div style="font-size:10px;color:#888;margin-bottom:4px;">6/7</div><div style="background:#1a6b3a;border-radius:4px 4px 0 0;height:90px;width:100%;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;"><span style="font-size:10px;color:#fff;font-weight:700;">99.67%</span></div></div>
+      <div style="text-align:center;flex:1;"><div style="font-size:10px;color:#888;margin-bottom:4px;">6/8</div><div style="background:#1a6b3a;border-radius:4px 4px 0 0;height:86px;width:100%;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;"><span style="font-size:10px;color:#fff;font-weight:700;">99.54%</span></div></div>
+      <div style="flex:0 0 auto;align-self:center;padding-left:8px;font-size:11px;color:#888;">
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px;"><div style="width:12px;height:12px;background:#ff9800;border-radius:2px;"></div>Below 99%</div>
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px;"><div style="width:12px;height:12px;background:#4caf50;border-radius:2px;"></div>Above 99%</div>
+        <div style="display:flex;align-items:center;gap:4px;"><div style="width:12px;height:12px;background:#1a6b3a;border-radius:2px;"></div>Above 99.5%</div>
+      </div>
+    </div>
+    <div class="success-box">✅ <strong>Authentication rate exceeded 99% for 6 consecutive days</strong> (6/3–6/8). All legitimate senders (Google Workspace, Mimecast, lolipop, heteml, docomo) confirmed PASS. Migration criteria met.<br><span style="font-size:11px;margin-top:4px;display:block;">※ The dip on 6/2 was caused by forwarded mail from external partners (leverages.jp, etc.) — not an issue with our own outbound mail.</span></div>
+  </div>
+</div>
+
+<!-- ========== Summary of Changes ========== -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">📋</div><h2>Summary of Changes (2 DNS records on onamae.com)</h2></div>
+  <div class="slide-body">
+
+    <p style="font-size:13px;font-weight:700;color:#0d3b2e;margin-bottom:14px;">🔧 DNS Records to Modify</p>
+
+    <div class="onamae-mock" style="margin-bottom:20px;">
+      <div class="onamae-head">
+        <div class="onamae-title">🌐 onamae.com Navi — DNS Record Settings (adventure-inc.co.jp)</div>
+        <div style="font-size:10px;background:rgba(255,255,255,0.2);border-radius:4px;padding:2px 8px;">Registered Records　← Edit these</div>
+      </div>
+      <div class="onamae-body">
+        <div class="dns-row header">
+          <div class="dns-cell">Record Type</div>
+          <div class="dns-cell">Hostname</div>
+          <div class="dns-cell">TYPE</div>
+          <div class="dns-cell">TTL</div>
+          <div class="dns-cell">VALUE</div>
+        </div>
+        <div class="dns-row current">
+          <div class="dns-cell" style="font-size:10px;color:#b71c1c;">① SPF (before)</div>
+          <div class="dns-cell"><span class="dns-val">(blank)</span></div>
+          <div class="dns-cell"><span class="dns-badge gray">TXT</span></div>
+          <div class="dns-cell"><span class="dns-val">3600</span></div>
+          <div class="dns-cell"><span class="dns-val" style="color:#b71c1c;text-decoration:line-through;">v=spf1 +mx include:_spf.google.com include:spf.makeshop.jp -all</span></div>
+        </div>
+        <div class="dns-row change">
+          <div class="dns-cell" style="font-weight:700;color:#e65100;">① SPF (after) ✏️</div>
+          <div class="dns-cell"><span class="dns-val">(blank)</span></div>
+          <div class="dns-cell"><span class="dns-badge orange">TXT</span></div>
+          <div class="dns-cell"><span class="dns-val">3600</span></div>
+          <div class="dns-cell"><span class="dns-val" style="font-weight:700;color:#e65100;">v=spf1 +mx include:_spf.google.com include:spf.makeshop.jp ip4:52.194.41.164 -all</span></div>
+        </div>
+        <div class="dns-row current">
+          <div class="dns-cell" style="font-size:10px;color:#b71c1c;">② DMARC (before)</div>
+          <div class="dns-cell"><span class="dns-val">_dmarc</span></div>
+          <div class="dns-cell"><span class="dns-badge gray">TXT</span></div>
+          <div class="dns-cell"><span class="dns-val">3600</span></div>
+          <div class="dns-cell"><span class="dns-val" style="color:#b71c1c;text-decoration:line-through;">v=DMARC1; p=none; rua=mailto:info-system@adventure-inc.co.jp</span></div>
+        </div>
+        <div class="dns-row change">
+          <div class="dns-cell" style="font-weight:700;color:#e65100;">② DMARC (after) ✏️</div>
+          <div class="dns-cell"><span class="dns-val" style="font-weight:700;">_dmarc</span></div>
+          <div class="dns-cell"><span class="dns-badge orange">TXT</span></div>
+          <div class="dns-cell"><span class="dns-val">3600</span></div>
+          <div class="dns-cell"><span class="dns-val" style="font-weight:700;color:#e65100;">v=DMARC1; p=quarantine; pct=10; rua=mailto:info-system@adventure-inc.co.jp; sp=none; aspf=r; adkim=r</span></div>
+        </div>
+      </div>
+    </div>
+
+    <p style="font-size:13px;font-weight:700;color:#0d3b2e;margin-bottom:10px;">🔍 Explanation of Changes</p>
+    <table class="compare-table">
+      <tr>
+        <th class="th-label">Parameter</th>
+        <th style="background:#ffebee;color:#b71c1c;padding:8px 12px;border:1px solid #ddd;width:28%;">Before</th>
+        <th style="background:#e8f5e9;color:#1b5e20;padding:8px 12px;border:1px solid #ddd;width:28%;">After</th>
+        <th style="background:#f5f5f5;color:#333;padding:8px 12px;border:1px solid #ddd;">Reason</th>
+      </tr>
+      <tr>
+        <th class="th-label">SPF tail</th>
+        <td class="td-before">-all</td>
+        <td class="td-after">ip4:52.194.41.164 -all</td>
+        <td class="td-reason">Allows mail from the Zabbix proxy server (mail01) to pass SPF. IP confirmed as "zabbixプロキシ" in the Google Cloud Armor IP registry. The -all strict policy is retained.</td>
+      </tr>
+      <tr>
+        <th class="th-label">p=</th>
+        <td class="td-before">p=none (monitor only)</td>
+        <td class="td-after">p=quarantine (quarantine)</td>
+        <td class="td-reason">FAIL messages will be delivered to the spam folder instead of the inbox. All legitimate senders are confirmed PASS, so no impact on normal mail flow.</td>
+      </tr>
+      <tr>
+        <th class="th-label">pct=</th>
+        <td class="td-before">(not set = 100%)</td>
+        <td class="td-after">pct=10</td>
+        <td class="td-reason">Policy applies to only 10% of FAIL messages. Staged rollout to minimize risk. Will increase to pct=100 after one week of stable operation.</td>
+      </tr>
+      <tr>
+        <th class="th-label">sp=</th>
+        <td class="td-before">(not set)</td>
+        <td class="td-after">sp=none</td>
+        <td class="td-reason">Subdomains (e.g. skyticket.com) are exempt from the policy. Prevents unintended impact on subdomain mail flows.</td>
+      </tr>
+      <tr>
+        <th class="th-label">aspf= / adkim=</th>
+        <td class="td-before">(not set = strict)</td>
+        <td class="td-after">aspf=r / adkim=r</td>
+        <td class="td-reason">Relaxed alignment mode. Reduces false positives from forwarded mail and some third-party services.</td>
+      </tr>
+    </table>
+
+    <div class="warn-box" style="margin-top:14px;">
+      <strong>⚠️ Important: Only ONE SPF record is allowed per domain</strong><br>
+      <span style="font-size:12px;line-height:1.7;margin-top:4px;display:block;"><strong>Edit and overwrite</strong> the existing SPF record. Do NOT add a new one — having two SPF records will break SPF authentication entirely.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ========== STEP 1: Update SPF ========== -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">1</div><h2>Update the SPF Record on onamae.com</h2><div class="tag2">~5 min</div></div>
+  <div class="slide-body">
+
+    <div class="screen-badge red">🌐 This step uses onamae.com Navi</div>
+
+    <p style="font-size:13px;font-weight:700;color:#0d3b2e;margin-bottom:8px;">📌 Navigation path on onamae.com</p>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px;flex-wrap:wrap;">
+      <span style="background:#e0001b;color:#fff;border-radius:4px;padding:3px 8px;font-size:11px;font-weight:700;">onamae.com → Log in</span>
+      <span style="color:#888;">→</span>
+      <span style="background:#ffebee;border-radius:4px;padding:3px 8px;font-size:11px;font-weight:700;color:#b71c1c;">Domain → Domain Features</span>
+      <span style="color:#888;">→</span>
+      <span style="background:#ffebee;border-radius:4px;padding:3px 8px;font-size:11px;font-weight:700;color:#b71c1c;">DNS Record Settings</span>
+      <span style="color:#888;">→</span>
+      <span style="background:#e0001b;color:#fff;border-radius:4px;padding:3px 8px;font-size:11px;font-weight:700;">Select adventure-inc.co.jp</span>
+    </div>
+
+    <div style="background:#e3f2fd;border:2px solid #1565c0;border-radius:8px;padding:14px 16px;margin-bottom:18px;">
+      <div style="font-weight:800;font-size:13px;color:#0d47a1;margin-bottom:8px;">① How to update the SPF record</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <div style="font-size:11px;color:#555;margin-bottom:3px;">Target record hostname</div>
+          <div style="background:#fff;border:1px solid #90b0f0;border-radius:4px;padding:6px 10px;font-family:monospace;font-size:12px;font-weight:700;color:#0d47a1;">(blank — the TXT record)</div>
+          <div style="font-size:10px;color:#888;margin-top:3px;">※ Find the TXT record starting with v=spf1</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:#555;margin-bottom:3px;">New record value (copy &amp; paste)</div>
+          <div style="background:#fff;border:2px solid #fbc02d;border-radius:4px;padding:6px 10px;font-family:monospace;font-size:10px;color:#5d4037;word-break:break-all;font-weight:700;">v=spf1 +mx include:_spf.google.com include:spf.makeshop.jp ip4:52.194.41.164 -all</div>
+          <div style="font-size:10px;color:#c62828;margin-top:3px;font-weight:700;">⚠️ EDIT the existing record — do NOT add a new one</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-item"><div class="si-num">1</div><div class="si-text">Log in to onamae.com Navi and go to <strong>Domain → Domain Features → DNS Record Settings</strong>.</div></div>
+    <div class="step-item"><div class="si-num">2</div><div class="si-text">Select <strong>adventure-inc.co.jp</strong> and click <strong>"Next"</strong>.</div></div>
+    <div class="step-item"><div class="si-num">3</div><div class="si-text">Open the <strong>"Registered Records" tab</strong> and locate the SPF record (the TXT record starting with <code style="font-size:11px;background:#f5f5f5;padding:1px 5px;border-radius:2px;">v=spf1</code>).</div></div>
+    <div class="step-item"><div class="si-num">4</div><div class="si-text">Click <strong>"Edit" (or the pencil icon)</strong> for that record to open the edit screen.</div></div>
+    <div class="step-item"><div class="si-num">5</div><div class="si-text">Replace the VALUE field with:<br><code style="font-size:11px;background:#e8f5e9;padding:3px 8px;border-radius:3px;font-weight:700;color:#1b5e20;display:inline-block;margin-top:4px;">v=spf1 +mx include:_spf.google.com include:spf.makeshop.jp ip4:52.194.41.164 -all</code></div></div>
+    <div class="step-item"><div class="si-num">6</div><div class="si-text">Click <strong>"Proceed to Confirmation" → "Apply Settings"</strong> to save the change.</div></div>
+
+    <div class="success-box" style="margin-top:12px;">✅ Once the SPF record is updated, proceed to STEP 2 (update DMARC).</div>
+  </div>
+  <div class="slide-support">🆘 For onamae.com login credentials, contact <strong>#help_社内システム</strong> on Slack</div>
+</div>
+
+<!-- ========== STEP 2: Update DMARC ========== -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">2</div><h2>Update the DMARC Record on onamae.com</h2><div class="tag2">~5 min</div></div>
+  <div class="slide-body">
+
+    <div class="screen-badge red">🌐 This step uses onamae.com Navi (continuing from STEP 1)</div>
+
+    <div style="background:#e8f5e9;border:2px solid #4caf50;border-radius:8px;padding:14px 16px;margin-bottom:18px;">
+      <div style="font-weight:800;font-size:13px;color:#1b5e20;margin-bottom:8px;">② How to update the DMARC record (p=quarantine pct=10)</div>
+      <div style="display:grid;grid-template-columns:1fr 2fr;gap:10px;">
+        <div>
+          <div style="font-size:11px;color:#555;margin-bottom:3px;">Target record hostname</div>
+          <div style="background:#fff;border:1px solid #90d0a0;border-radius:4px;padding:6px 10px;font-family:monospace;font-size:12px;font-weight:700;color:#1b5e20;">_dmarc</div>
+          <div style="font-size:10px;color:#888;margin-top:3px;">※ Note the leading underscore</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:#555;margin-bottom:3px;">New record value (copy &amp; paste)</div>
+          <div style="background:#fff;border:2px solid #4caf50;border-radius:4px;padding:6px 10px;font-family:monospace;font-size:10px;font-weight:700;color:#1b5e20;word-break:break-all;">v=DMARC1; p=quarantine; pct=10; rua=mailto:info-system@adventure-inc.co.jp; sp=none; aspf=r; adkim=r</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;background:#f1fff4;border-radius:6px;padding:8px 12px;font-size:11px;color:#1b5e20;">
+        💡 What is <strong>pct=10</strong>? → It means "apply the quarantine policy to only 10% of FAIL messages."<br>
+        We start small and verify for one week, then increase to pct=100. There is no impact on legitimate mail.
+      </div>
+    </div>
+
+    <div class="step-item"><div class="si-num">1</div><div class="si-text">On the same DNS settings screen (from STEP 1), open the <strong>"Registered Records" tab</strong> and find the <code style="font-size:11px;background:#f5f5f5;padding:1px 5px;">_dmarc</code> TXT record.</div></div>
+    <div class="step-item"><div class="si-num">2</div><div class="si-text">Click <strong>"Edit"</strong> on that record to open the edit screen.</div></div>
+    <div class="step-item"><div class="si-num">3</div><div class="si-text">Replace the VALUE field with:<br><code style="font-size:10px;background:#e8f5e9;padding:3px 8px;border-radius:3px;font-weight:700;color:#1b5e20;display:inline-block;margin-top:4px;word-break:break-all;">v=DMARC1; p=quarantine; pct=10; rua=mailto:info-system@adventure-inc.co.jp; sp=none; aspf=r; adkim=r</code></div></div>
+    <div class="step-item"><div class="si-num">4</div><div class="si-text">Click <strong>"Proceed to Confirmation" → "Apply Settings"</strong> to save the change.</div></div>
+
+    <div class="important-box" style="margin-top:12px;">
+      <div class="i-title">⏳ Wait for DNS propagation (typically 30 min – a few hours, up to 48 hours)</div>
+      <p style="font-size:12px;color:#7b3a00;line-height:1.7;">Changes do not take effect immediately. Wait for propagation to complete before proceeding to STEP 3 (verification). No action required in the meantime.</p>
+    </div>
+  </div>
+  <div class="slide-support">🆘 If you are unsure how to make the changes, contact <strong>#help_社内システム</strong> on Slack</div>
+</div>
+
+<!-- ========== DNS Propagation Check ========== -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">⏳</div><h2>Verify DNS Propagation (required before STEP 3)</h2><div class="tag2">30 min – a few hours later</div></div>
+  <div class="slide-body">
+
+    <div class="screen-badge" style="background:#0d47a1;">💻 This step uses Terminal / Command Prompt</div>
+
+    <p style="font-size:13px;color:#444;margin-bottom:16px;">After saving the changes on onamae.com, confirm DNS propagation before proceeding to STEP 3.</p>
+
+    <div class="two-col" style="margin-bottom:16px;">
+      <div>
+        <p style="font-size:12px;font-weight:700;color:#0d3b2e;margin-bottom:6px;">① Verify SPF propagation</p>
+        <div class="terminal">
+          <div class="terminal-bar">
+            <div class="t-dot r"></div><div class="t-dot y"></div><div class="t-dot g"></div>
+            <div class="t-title">Terminal / Command Prompt</div>
+          </div>
+          <div class="terminal-body">
+            <div><span class="t-prompt">$ </span><span class="t-cmd">dig TXT adventure-inc.co.jp +short</span></div>
+            <div style="margin-top:6px;margin-bottom:4px;"><span class="t-comment"># Expected output (must include 52.194.41.164)</span></div>
+            <div><span class="t-val">"v=spf1 +mx include:_spf.google.com</span></div>
+            <div><span class="t-val"> include:spf.makeshop.jp ip4:52.194.41.164 -all"</span></div>
+            <div style="margin-top:6px;"><span class="t-ok">✓ Propagated if ip4:52.194.41.164 is present!</span></div>
+            <div style="margin-top:8px;"><span class="t-comment"># Windows</span></div>
+            <div><span class="t-prompt">> </span><span class="t-cmd">nslookup -type=TXT adventure-inc.co.jp</span></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p style="font-size:12px;font-weight:700;color:#0d3b2e;margin-bottom:6px;">② Verify DMARC propagation</p>
+        <div class="terminal">
+          <div class="terminal-bar">
+            <div class="t-dot r"></div><div class="t-dot y"></div><div class="t-dot g"></div>
+            <div class="t-title">Terminal / Command Prompt</div>
+          </div>
+          <div class="terminal-body">
+            <div><span class="t-prompt">$ </span><span class="t-cmd">dig TXT _dmarc.adventure-inc.co.jp +short</span></div>
+            <div style="margin-top:6px;margin-bottom:4px;"><span class="t-comment"># Expected output (must show p=quarantine)</span></div>
+            <div><span class="t-val">"v=DMARC1; p=quarantine; pct=10;</span></div>
+            <div><span class="t-val"> rua=mailto:info-system@..."</span></div>
+            <div style="margin-top:6px;"><span class="t-ok">✓ Propagated if p=quarantine is present!</span></div>
+            <div style="margin-top:8px;"><span class="t-comment"># Windows</span></div>
+            <div><span class="t-prompt">> </span><span class="t-cmd">nslookup -type=TXT _dmarc.adventure-inc.co.jp</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="important-box">
+      <div class="i-title">⚠️ Alternative verification (no terminal needed)</div>
+      <p style="font-size:12px;color:#7b3a00;line-height:1.7;">Visit <a href="https://mxtoolbox.com/SuperTool.aspx" style="color:#1565c0;font-weight:700;">MXToolbox SuperTool</a>, select "DMARC Lookup", enter <span class="code-inline">adventure-inc.co.jp</span>, and click Search. If <code>p=quarantine</code> is shown, propagation is complete.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ========== STEP 3: Verification ========== -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">3</div><h2>Verify Authentication (after DNS propagation)</h2><div class="tag2">~10 min</div></div>
+  <div class="slide-body">
+
+    <div class="screen-badge">🖥️ This step uses Gmail</div>
+
+    <p style="font-size:13px;font-weight:700;color:#0d3b2e;margin-bottom:10px;">📌 Check SPF / DKIM / DMARC all pass in Gmail</p>
+
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px;overflow-x:auto;">
+      <div style="flex:0 0 auto;text-align:center;min-width:120px;">
+        <div style="background:#f0f4ff;border-radius:8px;padding:10px;border:1px solid #90b0f0;font-size:11px;">
+          <div style="font-size:20px;margin-bottom:4px;">📤</div>
+          <div style="font-weight:700;">①</div>
+          <div>Send a test email<br>from an<br>adventure-inc.co.jp account</div>
+        </div>
+      </div>
+      <div style="font-size:22px;color:#1a6b3a;font-weight:700;flex-shrink:0;">→</div>
+      <div style="flex:0 0 auto;text-align:center;min-width:120px;">
+        <div style="background:#f0f4ff;border-radius:8px;padding:10px;border:1px solid #90b0f0;font-size:11px;">
+          <div style="font-size:20px;margin-bottom:4px;">📬</div>
+          <div style="font-weight:700;">②</div>
+          <div>Open the email<br>in the recipient's<br>Gmail inbox</div>
+        </div>
+      </div>
+      <div style="font-size:22px;color:#1a6b3a;font-weight:700;flex-shrink:0;">→</div>
+      <div style="flex:0 0 auto;text-align:center;min-width:140px;">
+        <div style="background:#f0f4ff;border-radius:8px;padding:10px;border:1px solid #90b0f0;font-size:11px;">
+          <div style="font-size:20px;margin-bottom:4px;">⋮</div>
+          <div style="font-weight:700;">③</div>
+          <div>Click "⋮" (top right)<br>→ <strong>"Show original"</strong></div>
+        </div>
+      </div>
+      <div style="font-size:22px;color:#1a6b3a;font-weight:700;flex-shrink:0;">→</div>
+      <div style="flex:1;min-width:220px;">
+        <div style="font-size:10px;font-weight:700;color:#e65100;margin-bottom:4px;text-align:center;">④ Check the Authentication-Results header</div>
+        <div style="background:#202124;border-radius:10px;overflow:hidden;font-size:10px;">
+          <div style="background:#303134;padding:8px 12px;display:flex;align-items:center;gap:8px;">
+            <div style="font-size:11px;font-weight:700;color:#e8eaed;">📧 Original message — adventure-inc.co.jp</div>
+          </div>
+          <div style="padding:12px 16px;font-family:monospace;font-size:10px;line-height:1.8;">
+            <div><span style="color:#8ab4f8;">Authentication-Results:</span> <span style="color:#e6db74;">mx.google.com;</span></div>
+            <div style="padding-left:14px;"><span style="color:#8ab4f8;">spf=</span><span style="color:#81c995;font-weight:700;">pass</span></div>
+            <div style="padding-left:14px;"><span style="color:#8ab4f8;">dkim=</span><span style="color:#81c995;font-weight:700;">pass</span></div>
+            <div style="padding-left:14px;"><span style="color:#8ab4f8;">dmarc=</span><span style="color:#81c995;font-weight:700;">pass</span> <span style="color:#e6db74;">(p=QUARANTINE ...)</span></div>
+            <div style="margin-top:6px;color:#9e9e9e;font-style:italic;">← All 3 pass + p=QUARANTINE = migration complete!</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="success-box">
+      🎉 <strong>If spf=pass, dkim=pass, and dmarc=pass (p=QUARANTINE) are all confirmed, the migration is complete!</strong><br>
+      <span style="font-size:12px;margin-top:4px;display:block;">DMARC reports will continue to arrive at info-system@adventure-inc.co.jp. Review them after one week. If the authentication rate remains above 99% and there are no complaints, increase pct=10 → pct=100.</span>
+    </div>
+  </div>
+  <div class="slide-support">🆘 If dmarc=fail persists, contact <strong>#help_社内システム</strong> on Slack (same-day response)</div>
+</div>
+
+<!-- ========== Post-Migration Monitoring ========== -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">📈</div><h2>Post-Migration Monitoring & Roadmap</h2></div>
+  <div class="slide-body">
+
+    <p style="font-size:13px;font-weight:700;color:#0d3b2e;margin-bottom:10px;">📊 What to watch during the first week</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+      <div style="background:#ffebee;border:2px solid #e53935;border-radius:8px;padding:12px 14px;">
+        <div style="font-weight:800;font-size:12px;color:#b71c1c;margin-bottom:6px;">🚨 Rollback immediately if this happens</div>
+        <div style="font-size:11px;color:#c62828;line-height:1.7;">Reports of legitimate mail landing in the spam folder<br>→ Revert to p=none and investigate the cause</div>
+      </div>
+      <div style="background:#e8f5e9;border:2px solid #4caf50;border-radius:8px;padding:12px 14px;">
+        <div style="font-weight:800;font-size:12px;color:#1b5e20;margin-bottom:6px;">✅ All clear → increase to pct=100</div>
+        <div style="font-size:11px;color:#2e7d32;line-height:1.7;">After one week: check DMARC reports, confirm rate ≥99% and zero complaints, then change pct=10 → pct=100</div>
+      </div>
+    </div>
+
+    <p style="font-size:13px;font-weight:700;color:#0d3b2e;margin-bottom:10px;">🗺 Roadmap</p>
+    <div class="roadmap">
+      <div class="rm-phase">
+        <div class="rm-head" style="background:#4caf50;">Phase 1 Complete: p=none (monitor)</div>
+        <div class="rm-body">
+          · Completed 6/3–6/9<br>
+          · 99%+ rate for 6 consecutive days<br>
+          · All senders identified<br>
+          · Zabbix IP confirmed
+          <div class="rm-now">✅ Done</div>
+        </div>
+      </div>
+      <div class="rm-phase">
+        <div class="rm-head" style="background:#e65100;">Phase 2: p=quarantine ← Now</div>
+        <div class="rm-body">
+          · <strong>Starting today at pct=10</strong><br>
+          · Increase to pct=100 after 1 week<br>
+          · Monitor for 2 stable weeks<br>
+          · Confirm zero complaints
+          <div class="rm-now">← This procedure</div>
+        </div>
+      </div>
+      <div class="rm-phase">
+        <div class="rm-head" style="background:#1565c0;">Phase 3: p=reject (mid-July~)</div>
+        <div class="rm-body">
+          · Spoofed mail fully blocked<br>
+          · Full Google compliance<br>
+          · After Phase 2 stable period<br>
+          · Monthly report monitoring
+        </div>
+      </div>
+    </div>
+
+    <p style="font-size:13px;font-weight:700;color:#0d3b2e;margin:20px 0 10px;">✅ Work Completion Checklist</p>
+    <div class="checklist-item"><div class="check-box"></div><span>STEP 1: Added ip4:52.194.41.164 to the SPF record and saved</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>STEP 2: Updated the DMARC record to p=quarantine pct=10 and saved</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>DNS check: Confirmed 52.194.41.164 appears in SPF via nslookup/dig</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>DNS check: Confirmed DMARC shows p=quarantine via nslookup/dig</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>STEP 3: Confirmed spf=pass / dkim=pass / dmarc=pass (p=QUARANTINE) via test email</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>1 week later: No reports of legitimate mail going to spam</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>1 week later: Authentication rate ≥99% confirmed in DMARC reports</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>(If all clear) Changed pct=10 → pct=100</span></div>
+  </div>
+  <div class="slide-support">📬 DMARC reports will be delivered to info-system@adventure-inc.co.jp. Review them weekly.</div>
+</div>
+
+<!-- ========== Emergency Rollback ========== -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">🔄</div><h2>Emergency Rollback Procedure</h2><div class="tag2">Emergency Use Only</div></div>
+  <div class="slide-body">
+
+    <div class="danger-box" style="margin-bottom:20px;">
+      <strong>⚠️ When to rollback</strong><br>
+      <span style="font-size:12px;line-height:1.8;margin-top:4px;display:block;">
+        If you receive reports of legitimate mail landing in spam, or if DMARC reports reveal a newly discovered legitimate sender that is FAILING, immediately revert to p=none using the steps below.
+      </span>
+    </div>
+
+    <p style="font-size:13px;font-weight:700;color:#c62828;margin-bottom:14px;">🔁 Rollback steps</p>
+
+    <div class="step-item"><div class="si-num" style="background:linear-gradient(135deg,#c62828,#b71c1c);">1</div><div class="si-text">Log in to onamae.com Navi and navigate to DNS Record Settings.</div></div>
+    <div class="step-item"><div class="si-num" style="background:linear-gradient(135deg,#c62828,#b71c1c);">2</div><div class="si-text"><strong>Edit the _dmarc TXT record</strong> and replace the VALUE with:<br><code style="font-size:11px;background:#ffebee;padding:3px 8px;border-radius:3px;font-weight:700;color:#b71c1c;display:inline-block;margin-top:4px;">v=DMARC1; p=none; rua=mailto:info-system@adventure-inc.co.jp</code></div></div>
+    <div class="step-item"><div class="si-num" style="background:linear-gradient(135deg,#c62828,#b71c1c);">3</div><div class="si-text">Click <strong>"Proceed to Confirmation" → "Apply Settings"</strong> to save.</div></div>
+    <div class="step-item"><div class="si-num" style="background:linear-gradient(135deg,#c62828,#b71c1c);">4</div><div class="si-text">After DNS propagation (up to TTL = 3600 seconds), verify that p=none is in effect via nslookup.</div></div>
+    <div class="step-item"><div class="si-num" style="background:linear-gradient(135deg,#c62828,#b71c1c);">5</div><div class="si-text">Identify the new FAIL sender(s) from DMARC reports, add the necessary SPF/DKIM settings, then attempt migration to p=quarantine again.</div></div>
+
+    <div class="warn-box" style="margin-top:16px;">
+      <strong>⚠️ The SPF change does NOT need to be rolled back</strong><br>
+      <span style="font-size:12px;line-height:1.7;margin-top:4px;display:block;">
+        The addition of the Zabbix proxy IP (ip4:52.194.41.164) to SPF is permanent and should be retained even after rolling back the DMARC policy.
+      </span>
+    </div>
+  </div>
+  <div class="slide-support">🆘 If you encounter issues during rollback, contact <strong>#help_社内システム</strong> on Slack immediately</div>
+</div>
+
+</body>
+</html>
