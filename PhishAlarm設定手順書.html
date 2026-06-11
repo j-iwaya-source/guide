@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PhishAlarm 設定・展開手順書</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Hiragino Sans','Yu Gothic',Arial,sans-serif; background:#f0f4f8; color:#1a1a2e; }
+
+/* ─── 表紙 ─── */
+.cover {
+  background: linear-gradient(135deg,#0d1b4b 0%,#1a3a6b 50%,#0a7a7a 100%);
+  min-height:480px; display:flex; align-items:center; justify-content:space-between;
+  padding:48px 64px; gap:40px; margin-bottom:32px; position:relative; overflow:hidden;
+}
+.cover::before { content:''; position:absolute; inset:0;
+  background: radial-gradient(circle at 30% 50%, rgba(0,200,200,0.15) 0%, transparent 60%),
+              radial-gradient(circle at 70% 30%, rgba(100,150,255,0.1) 0%, transparent 50%); }
+.cover-left { flex:1; position:relative; z-index:1; }
+.cover-icon { font-size:100px; line-height:1; filter:drop-shadow(0 0 30px rgba(0,220,220,0.5)); }
+.cover-right { flex:1.2; position:relative; z-index:1; color:#fff; }
+.cover-tag { background:rgba(255,200,0,0.9); color:#1a1a2e; font-size:13px; font-weight:700; padding:4px 14px; border-radius:4px; display:inline-block; margin-bottom:16px; }
+.cover-right h1 { font-size:36px; font-weight:900; line-height:1.3; margin-bottom:12px; text-shadow:0 2px 8px rgba(0,0,0,0.3); }
+.cover-right .cover-sub { font-size:12px; opacity:0.8; margin-bottom:16px; }
+.cover-right .cover-desc { font-size:13px; line-height:1.8; background:rgba(255,255,255,0.1); border-radius:8px; padding:14px; border-left:3px solid #00d4d4; margin-bottom:16px; }
+.cover-right .cover-desc strong { color:#ffd700; }
+.support-banner { background:rgba(255,255,255,0.15); border:2px solid #ffd700; border-radius:10px; padding:12px 16px; margin-bottom:16px; display:flex; align-items:center; gap:12px; }
+.support-banner .sb-icon { font-size:24px; flex-shrink:0; }
+.support-banner .sb-text { font-size:12px; line-height:1.6; }
+.support-banner .sb-text strong { color:#ffd700; font-size:13px; }
+.time-bar { background:rgba(255,255,255,0.1); border-radius:10px; padding:12px 16px; border:1px solid rgba(255,255,255,0.2); }
+.time-bar .tb-title { font-size:12px; font-weight:700; color:#ffd700; margin-bottom:8px; }
+.time-steps { display:flex; gap:0; }
+.ts { flex:1; text-align:center; padding:6px 4px; border-right:1px solid rgba(255,255,255,0.2); }
+.ts:last-child { border-right:none; }
+.ts .ts-step { font-size:9px; opacity:0.7; }
+.ts .ts-min { font-size:14px; font-weight:900; color:#ffd700; }
+.ts .ts-label { font-size:9px; opacity:0.8; }
+.time-total { font-size:11px; margin-top:8px; text-align:right; opacity:0.85; }
+
+/* ─── スライド共通 ─── */
+.slide { background:#fff; margin:0 auto 32px; max-width:1000px; border-radius:16px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,0.10); }
+.slide-head { background:linear-gradient(90deg,#0d1b4b,#1a6090); color:#fff; padding:18px 36px; display:flex; align-items:center; gap:14px; }
+.slide-head .snum { background:rgba(255,255,255,0.2); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:900; flex-shrink:0; }
+.slide-head h2 { font-size:22px; font-weight:800; }
+.slide-head .tag2 { margin-left:auto; background:rgba(255,200,0,0.9); color:#1a1a2e; font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; white-space:nowrap; }
+.slide-body { padding:32px 36px; }
+
+/* ─── カラーボックス ─── */
+.warn-box { background:#fff3cd; border:2px solid #ffc107; border-radius:8px; padding:12px 16px; font-size:13px; color:#7b4800; }
+.warn-box strong { color:#c62828; }
+.important-box { background:#fff3e0; border:2px solid #ff9800; border-radius:8px; padding:12px 16px; font-size:13px; color:#7b3a00; }
+.important-box .i-title { font-weight:800; color:#e65100; margin-bottom:6px; font-size:14px; }
+.success-box { background:#e8f5e9; border:2px solid #4caf50; border-radius:8px; padding:12px 16px; font-size:13px; color:#1b5e20; margin-top:8px; }
+.info-box { background:#e3f2fd; border:2px solid #1565c0; border-radius:8px; padding:12px 16px; font-size:13px; color:#0d47a1; margin-top:8px; }
+.slide-support { background:#f0f4ff; border-top:2px dashed #90b0f0; padding:10px 20px; font-size:12px; color:#0d47a1; display:flex; align-items:center; gap:8px; }
+.slide-support strong { color:#c62828; }
+
+/* ─── ステップ共通 ─── */
+.step-item { display:flex; gap:12px; align-items:flex-start; margin-bottom:10px; }
+.si-num { background:linear-gradient(135deg,#1a6090,#0d1b4b); color:#fff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:900; flex-shrink:0; margin-top:1px; }
+.si-text { font-size:13px; line-height:1.7; color:#333; }
+.si-text strong { color:#0d1b4b; background:#e8f0ff; padding:1px 5px; border-radius:3px; }
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+
+/* ─── UI モック共通 ─── */
+.dd { background:#fff; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.15); border:1px solid #ddd; overflow:hidden; font-size:11px; }
+.dd-item { padding:7px 12px; display:flex; align-items:center; gap:7px; }
+.dd-item.hl { background:#e8f0ff; color:#0d47a1; font-weight:700; border-left:3px solid #1565c0; }
+.dd-item.red { color:#e53935; }
+
+@media print {
+  body { background:#fff; }
+  .cover, .slide { box-shadow:none; margin:0; border-radius:0; }
+  .cover { min-height:unset !important; padding:32px 48px !important; break-inside:avoid; page-break-inside:avoid; }
+  .slide { break-before:page; page-break-before:always; break-inside:avoid; page-break-inside:avoid; margin-bottom:0 !important; }
+  .slide-head, .step-item, .two-col, .important-box, .warn-box, .info-box, .success-box, .slide-body > * { break-inside:avoid; page-break-inside:avoid; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== 表紙 ===== -->
+<div class="cover">
+  <div class="cover-left"><div class="cover-icon">🎣</div></div>
+  <div class="cover-right">
+    <div class="cover-tag">【IT管理者向け】</div>
+    <h1>PhishAlarm<br/>設定・展開手順書</h1>
+    <div class="cover-sub">発行：コーポレートIT課　｜　対象環境：Google Workspace（Gmail）</div>
+    <div class="cover-desc">
+      Proofpoint ZenGuideの<strong>フィッシング報告ボタン「PhishAlarm」</strong>をGmailに展開する手順書です。<br/>
+      ユーザーが不審メールをワンクリックで情シスに報告できるようになります。
+    </div>
+    <div class="support-banner">
+      <div class="sb-icon">⚠️</div>
+      <div class="sb-text">
+        <strong>作業中に困ったら → Slack: #help_社内システム</strong><br/>
+        ZenGuide管理コンソール・Google管理コンソール両方の管理者権限が必要です。
+      </div>
+    </div>
+    <div class="time-bar">
+      <div class="tb-title">⏱ 作業の目安時間（合計：約30〜40分）</div>
+      <div class="time-steps">
+        <div class="ts"><div class="ts-step">Step1</div><div class="ts-min">5分</div><div class="ts-label">ZenGuide設定</div></div>
+        <div class="ts"><div class="ts-step">Step2</div><div class="ts-min">10分</div><div class="ts-label">Google承認</div></div>
+        <div class="ts"><div class="ts-step">Step3</div><div class="ts-min">10分</div><div class="ts-label">Gmail展開</div></div>
+        <div class="ts"><div class="ts-step">Step4</div><div class="ts-min">5分</div><div class="ts-label">Safelist設定</div></div>
+        <div class="ts"><div class="ts-step">Step5</div><div class="ts-min">5分</div><div class="ts-label">動作確認</div></div>
+      </div>
+      <div class="time-total">✅ 設定は一度だけです。完了すれば全社員のGmailにボタンが表示されます。</div>
+    </div>
+  </div>
+</div>
+
+<div style="max-width:860px;margin:0 auto;padding:0 24px 60px;">
+
+<!-- ===== はじめに ===== -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">📋</div><h2>はじめに：PhishAlarmとは</h2></div>
+  <div class="slide-body">
+    <div style="display:flex;flex-direction:column;gap:0;margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:16px;padding:12px 0;border-bottom:1px solid #eee;">
+        <div style="flex:0 0 auto;width:64px;height:64px;background:linear-gradient(135deg,#fff3e0,#ffe0b2);border:2px solid #ff9800;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:28px;">📧</div>
+        <div><div style="font-size:13px;font-weight:800;color:#e65100;">① 不審なメールを受信</div><div style="font-size:12px;color:#555;margin-top:2px;">フィッシング・スパム・なりすましメールなど</div></div>
+      </div>
+      <div style="text-align:center;font-size:16px;color:#1565c0;padding:3px 0;">↓ <span style="font-size:10px;color:#888;">ワンクリック</span></div>
+      <div style="display:flex;align-items:center;gap:16px;padding:12px 0;border-bottom:1px solid #eee;">
+        <div style="flex:0 0 auto;width:64px;height:64px;background:linear-gradient(135deg,#e8f0ff,#d0e0ff);border:2px solid #1565c0;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:28px;">🎣</div>
+        <div><div style="font-size:13px;font-weight:800;color:#0d47a1;">② GmailのReport Phishボタンをクリック</div><div style="font-size:12px;color:#555;margin-top:2px;">メール右上に常時表示されるボタン</div></div>
+      </div>
+      <div style="text-align:center;font-size:16px;color:#1565c0;padding:3px 0;">↓ <span style="font-size:10px;color:#888;">自動転送</span></div>
+      <div style="display:flex;align-items:center;gap:16px;padding:12px 0;">
+        <div style="flex:0 0 auto;width:64px;height:64px;background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border:2px solid #2e7d32;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:28px;">🛡️</div>
+        <div><div style="font-size:13px;font-weight:800;color:#1b5e20;">③ 情シスに自動転送・Analyzerで脅威スコアリング</div><div style="font-size:12px;color:#555;margin-top:2px;">メール種別を自動判定し、担当者に通知</div></div>
+      </div>
+    </div>
+    <!-- メール種別 -->
+    <p style="font-size:13px;font-weight:800;color:#0d1b4b;margin-bottom:10px;">📌 報告メールの自動分類（4種別）</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div style="background:#ffeaea;border:2px solid #e53935;border-radius:10px;padding:14px;">
+        <div style="font-weight:800;color:#c62828;font-size:13px;margin-bottom:4px;">🚨 Potential Phish</div>
+        <div style="font-size:12px;color:#444;">実際の不審メール。インシデント対応チームに転送される。</div>
+      </div>
+      <div style="background:#e8f5e9;border:2px solid #4caf50;border-radius:10px;padding:14px;">
+        <div style="font-weight:800;color:#2e7d32;font-size:13px;margin-bottom:4px;">🎯 Simulated Phish</div>
+        <div style="font-size:12px;color:#444;">フィッシングシミュレーション。教育担当（情シス）に転送。</div>
+      </div>
+      <div style="background:#e3f2fd;border:2px solid #1565c0;border-radius:10px;padding:14px;">
+        <div style="font-weight:800;color:#0d47a1;font-size:13px;margin-bottom:4px;">📚 ZenGuide Email</div>
+        <div style="font-size:12px;color:#444;">ZenGuideからのトレーニング通知メール。確認用に転送。</div>
+      </div>
+      <div style="background:#f3e5f5;border:2px solid #9c27b0;border-radius:10px;padding:14px;">
+        <div style="font-weight:800;color:#6a1b9a;font-size:13px;margin-bottom:4px;">✅ Safelist Email</div>
+        <div style="font-size:12px;color:#444;">安全と指定済みのアドレスからのメール。確認用に転送。</div>
+      </div>
+    </div>
+    <div class="warn-box" style="margin-top:16px;">⚠️ Gmail版の制限：<strong>報告後のメール自動削除・迷惑メール移動は非対応です。</strong>メールは受信トレイに残ります。ユーザーに手動削除を案内してください。</div>
+  </div>
+</div>
+
+<!-- ===== Step 1: ZenGuide設定 ===== -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">1</div><h2>ZenGuide設定（Branding & Post-Reporting Actions）</h2><div class="tag2">約5分</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;font-weight:700;color:#0d1b4b;margin-bottom:16px;">📌 ZenGuide管理コンソールで報告ボタンの外観・動作・転送先を設定します</p>
+
+    <!-- Branding -->
+    <div style="font-size:14px;font-weight:800;color:#1565c0;margin-bottom:10px;border-left:4px solid #1565c0;padding-left:10px;">① Branding & Appearance（ボタン外観）</div>
+    <div style="display:flex;flex-direction:column;gap:0;margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:16px;padding:10px 0;border-bottom:1px solid #eee;">
+        <div style="flex:0 0 auto;width:200px;">
+          <div style="background:#0d1b4b;border-radius:10px;padding:12px;color:#fff;font-size:11px;">
+            <div style="font-weight:700;margin-bottom:6px;">ZenGuide 管理コンソール</div>
+            <div style="background:rgba(255,255,255,0.1);border-radius:6px;padding:6px 8px;margin-bottom:4px;font-size:10px;">📊 Dashboard</div>
+            <div style="background:rgba(255,255,255,0.1);border-radius:6px;padding:6px 8px;margin-bottom:4px;font-size:10px;">📧 Campaigns</div>
+            <div style="background:#1565c0;border-radius:6px;padding:6px 8px;margin-bottom:4px;font-size:10px;font-weight:700;border:1px solid #ffd700;">🎣 Report Suspicious ←</div>
+            <div style="background:rgba(255,255,255,0.1);border-radius:6px;padding:6px 8px;font-size:10px;">⚙️ Settings</div>
+          </div>
+        </div>
+        <div style="flex:1;font-size:13px;color:#333;">
+          <span style="display:inline-block;background:#0d1b4b;color:#fff;border-radius:50%;width:22px;height:22px;text-align:center;line-height:22px;font-size:11px;font-weight:700;margin-right:8px;">①</span>
+          ZenGuide管理コンソールにログインし、左メニューの <strong>「Report Suspicious」</strong> をクリック
+        </div>
+      </div>
+      <div style="text-align:center;font-size:16px;color:#1565c0;padding:3px 0;">↓</div>
+      <div style="display:flex;align-items:center;gap:16px;padding:10px 0;border-bottom:1px solid #eee;">
+        <div style="flex:0 0 auto;width:200px;">
+          <div style="background:#fff;border:1px solid #ddd;border-radius:8px;overflow:hidden;font-size:11px;">
+            <div style="background:#f4f4f4;padding:7px 10px;font-weight:700;border-bottom:1px solid #ddd;">Settings</div>
+            <div style="padding:7px 10px;background:#e8f0ff;border-bottom:1px solid #ddd;font-weight:700;color:#0d47a1;border-left:3px solid #1565c0;">🎨 Branding & Appearance ←</div>
+            <div style="padding:7px 10px;border-bottom:1px solid #eee;color:#555;">⚙️ Post-Reporting Actions</div>
+            <div style="padding:7px 10px;border-bottom:1px solid #eee;color:#555;">📋 Safelist</div>
+            <div style="padding:7px 10px;color:#555;">📥 Add-in Setup</div>
+          </div>
+        </div>
+        <div style="flex:1;font-size:13px;color:#333;">
+          <span style="display:inline-block;background:#0d1b4b;color:#fff;border-radius:50%;width:22px;height:22px;text-align:center;line-height:22px;font-size:11px;font-weight:700;margin-right:8px;">②</span>
+          <strong>「Settings → Branding & Appearance」</strong>を開き、言語を<strong>「English」</strong>に設定。Button Labelはデフォルト（<strong>Report Phish</strong>）のまま推奨。<br/>
+          <span style="font-size:12px;color:#888;margin-top:4px;display:inline-block;">※ Japanese も + Add Translation で追加可能</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Post-Reporting Actions -->
+    <div style="font-size:14px;font-weight:800;color:#1565c0;margin-bottom:10px;border-left:4px solid #1565c0;padding-left:10px;">② Post-Reporting Actions（報告後の動作）</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+      <div style="background:#f8f9ff;border:1.5px solid #90b0f0;border-radius:10px;padding:14px;">
+        <div style="font-weight:800;color:#0d47a1;font-size:12px;margin-bottom:6px;">🎯 Simulated Phish タブ</div>
+        <div style="font-size:11px;color:#444;line-height:1.7;">Notification Message（英語）：<br/><em style="color:#1b5e20;">"Thank you for detecting a simulated phish. Your actions are helping to keep your company safe."</em></div>
+      </div>
+      <div style="background:#f8f9ff;border:1.5px solid #90b0f0;border-radius:10px;padding:14px;">
+        <div style="font-weight:800;color:#c62828;font-size:12px;margin-bottom:6px;">🚨 Potential Phish タブ</div>
+        <div style="font-size:11px;color:#444;line-height:1.7;">Notification Message（英語）：<br/><em style="color:#c62828;">"Thank you for reporting a suspicious email. It has been forwarded to your security team."</em><br/>Email Handling: <strong>No action</strong>（Gmail非対応）</div>
+      </div>
+      <div style="background:#f8f9ff;border:1.5px solid #90b0f0;border-radius:10px;padding:14px;">
+        <div style="font-weight:800;color:#6a1b9a;font-size:12px;margin-bottom:6px;">📚 ZenGuide Emails タブ</div>
+        <div style="font-size:11px;color:#444;line-height:1.7;">Notification Message（英語）：<br/><em style="color:#6a1b9a;">"Thank you for detecting a cyber-security training email sent by Proofpoint."</em></div>
+      </div>
+      <div style="background:#f8f9ff;border:1.5px solid #90b0f0;border-radius:10px;padding:14px;">
+        <div style="font-weight:800;color:#e65100;font-size:12px;margin-bottom:6px;">📮 Email Forwarding タブ</div>
+        <div style="font-size:11px;color:#444;line-height:1.7;">全4種別の転送先を設定：<br/><strong>phishalarm@adventure-inc.co.jp</strong><br/>（実際のアドレスに変更してください）</div>
+      </div>
+    </div>
+    <div class="success-box">✅ 各タブの設定後に必ず <strong>「Save Changes」</strong> をクリックしてください。</div>
+  </div>
+</div>
+
+<!-- ===== Step 2: Google承認 ===== -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">2</div><h2>Googleサービスユーザーの事前承認（推奨）</h2><div class="tag2">約10分</div></div>
+  <div class="slide-body">
+    <div class="info-box" style="margin-bottom:20px;">💡 この手順を行うと、ユーザーがPhishAlarmを初回利用する際に<strong>認証ポップアップが表示されなくなります</strong>。スキップも可能ですが、実施推奨です。</div>
+    <p style="font-size:13px;font-weight:700;color:#0d1b4b;margin-bottom:14px;">📌 Google管理コンソール（admin.google.com）で操作します</p>
+
+    <div style="display:flex;flex-direction:column;gap:0;">
+      <div style="display:flex;align-items:center;gap:16px;padding:12px 0;border-bottom:1px solid #eee;">
+        <div style="flex:0 0 auto;width:200px;">
+          <div style="background:#fff;border:1px solid #ddd;border-radius:8px;overflow:hidden;font-size:11px;">
+            <div style="background:#1a73e8;padding:8px 10px;color:#fff;font-weight:700;font-size:11px;">Google 管理コンソール</div>
+            <div style="padding:7px 10px;border-bottom:1px solid #eee;color:#555;">👤 ユーザー</div>
+            <div style="padding:7px 10px;background:#e8f0ff;border-bottom:1px solid #ddd;font-weight:700;color:#0d47a1;border-left:3px solid #1a73e8;">🛡️ セキュリティ ←</div>
+            <div style="padding:7px 10px;color:#555;">📱 デバイス</div>
+          </div>
+        </div>
+        <div style="flex:1;font-size:13px;color:#333;">
+          <span style="display:inline-block;background:#0d1b4b;color:#fff;border-radius:50%;width:22px;height:22px;text-align:center;line-height:22px;font-size:11px;font-weight:700;margin-right:8px;">①</span>
+          <strong>Google管理コンソール</strong>（admin.google.com）にログインし、<strong>「セキュリティ」→「アクセスとデータ制御」→「APIの制御」</strong>を開く
+        </div>
+      </div>
+      <div style="text-align:center;font-size:16px;color:#1565c0;padding:3px 0;">↓</div>
+      <div style="display:flex;align-items:center;gap:16px;padding:12px 0;border-bottom:1px solid #eee;">
+        <div style="flex:0 0 auto;width:200px;">
+          <div style="background:#fff;border:1px solid #ddd;border-radius:8px;padding:10px;font-size:11px;">
+            <div style="font-weight:700;margin-bottom:6px;color:#333;">サードパーティアプリのアクセスを管理</div>
+            <div style="background:#1a73e8;color:#fff;border-radius:4px;padding:4px 8px;font-size:10px;font-weight:700;display:inline-block;">＋ アプリを追加 ←</div>
+          </div>
+        </div>
+        <div style="flex:1;font-size:13px;color:#333;">
+          <span style="display:inline-block;background:#0d1b4b;color:#fff;border-radius:50%;width:22px;height:22px;text-align:center;line-height:22px;font-size:11px;font-weight:700;margin-right:8px;">②</span>
+          <strong>「サードパーティアプリのアクセスを管理」</strong>をクリックし、<strong>「アプリを追加」→「OAuthアプリ名またはクライアントID」</strong>を選択
+        </div>
+      </div>
+      <div style="text-align:center;font-size:16px;color:#1565c0;padding:3px 0;">↓</div>
+      <div style="display:flex;align-items:center;gap:16px;padding:12px 0;border-bottom:1px solid #eee;">
+        <div style="flex:0 0 auto;width:200px;">
+          <div style="background:#fff;border:1px solid #ddd;border-radius:8px;padding:10px;font-size:11px;">
+            <input style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px 8px;font-size:10px;margin-bottom:6px;" value="ZenGuide" readonly/>
+            <div style="background:#f5f5f5;border-radius:4px;padding:6px 8px;margin-bottom:3px;display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:10px;">ZenGuide Security</span>
+              <span style="background:#1a73e8;color:#fff;border-radius:3px;padding:2px 6px;font-size:9px;font-weight:700;">選択 ←</span>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;font-size:13px;color:#333;">
+          <span style="display:inline-block;background:#0d1b4b;color:#fff;border-radius:50%;width:22px;height:22px;text-align:center;line-height:22px;font-size:11px;font-weight:700;margin-right:8px;">③</span>
+          検索フィールドに <strong>「ZenGuide」</strong> と入力して検索し、表示されたアプリの <strong>「選択」</strong> をクリック。<strong>OAuth Client ID 両方</strong>にチェックを入れて「選択」
+        </div>
+      </div>
+      <div style="text-align:center;font-size:16px;color:#1565c0;padding:3px 0;">↓</div>
+      <div style="display:flex;align-items:center;gap:16px;padding:12px 0;">
+        <div style="flex:0 0 auto;width:200px;">
+          <div style="background:#e8f5e9;border:2px solid #4caf50;border-radius:8px;padding:10px;font-size:11px;">
+            <div style="font-weight:700;color:#1b5e20;margin-bottom:4px;">アプリアクセス</div>
+            <div style="display:flex;gap:4px;margin-bottom:4px;">
+              <div style="flex:1;background:#fff;border:1px solid #ddd;border-radius:4px;padding:5px;text-align:center;font-size:9px;color:#555;">制限</div>
+              <div style="flex:1;background:#4caf50;border-radius:4px;padding:5px;text-align:center;font-size:9px;font-weight:700;color:#fff;">信頼済み ←</div>
+            </div>
+            <div style="font-size:9px;color:#444;">すべてのGoogleサービスにアクセス可能</div>
+          </div>
+        </div>
+        <div style="flex:1;font-size:13px;color:#333;">
+          <span style="display:inline-block;background:#2e7d32;color:#fff;border-radius:50%;width:22px;height:22px;text-align:center;line-height:22px;font-size:11px;font-weight:700;margin-right:8px;">④</span>
+          App Accessで <strong>「信頼済み：すべてのGoogleサービスにアクセス可能」</strong> を選択し、<strong>「設定」</strong>をクリック
+        </div>
+      </div>
+    </div>
+    <div class="success-box" style="margin-top:16px;">✅ 承認完了！ユーザーへの初回ポップアップが表示されなくなります。</div>
+  </div>
+</div>
+
+<!-- ===== Step 3: Gmail展開 ===== -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">3</div><h2>Report Suspicious for Gmail のインストール展開</h2><div class="tag2">約10分</div></div>
+  <div class="slide-body">
+    <div class="important-box" style="margin-bottom:20px;">
+      <div class="i-title">⚠️ 注意：インストール前にStep 1のZenGuide設定を完了させてください</div>
+      設定前にインストールした場合、再インストールが必要になる場合があります。
+    </div>
+    <p style="font-size:13px;font-weight:700;color:#0d1b4b;margin-bottom:14px;">📌 ZenGuideコンソール → G Suite Marketplace の順に操作します</p>
+
+    <div style="display:flex;flex-direction:column;gap:0;">
+      <div style="display:flex;align-items:center;gap:16px;padding:12px 0;border-bottom:1px solid #eee;">
+        <div style="flex:0 0 auto;width:200px;">
+          <div style="background:#0d1b4b;border-radius:10px;padding:12px;color:#fff;font-size:11px;">
+            <div style="font-weight:700;margin-bottom:6px;">ZenGuide Console</div>
+            <div style="background:#1565c0;border-radius:6px;padding:6px 8px;font-size:10px;font-weight:700;border:1px solid #ffd700;">🎣 Report Suspicious</div>
+            <div style="padding:4px 8px;font-size:10px;color:#aaa;">→ Settings</div>
+            <div style="background:rgba(255,200,0,0.2);border-radius:6px;padding:6px 8px;font-size:10px;font-weight:700;border:1px solid #ffd700;margin-top:4px;">📥 Add-in Setup ←</div>
+          </div>
+        </div>
+        <div style="flex:1;font-size:13px;color:#333;">
+          <span style="display:inline-block;background:#0d1b4b;color:#fff;border-radius:50%;width:22px;height:22px;text-align:center;line-height:22px;font-size:11px;font-weight:700;margin-right:8px;">①</span>
+          ZenGuideコンソールで <strong>「Report Suspicious → Settings → Add-in Setup」</strong> を開き、<strong>「Install」</strong>タブをクリック
+        </div>
+      </div>
+      <div style="text-align:center;font-size:16px;color:#1565c0;padding:3px 0;">↓</div>
+      <div style="display:flex;align-items:center;gap:16px;padding:12px 0;border-bottom:1px solid #eee;">
+        <div style="flex:0 0 auto;width:200px;">
+          <div style="background:#fff;border:1px solid #ddd;border-radius:8px;padding:10px;font-size:11px;">
+            <div style="font-weight:700;margin-bottom:6px;color:#333;">Report Suspicious For Gmail</div>
+            <div style="background:#4285f4;color:#fff;border-radius:4px;padding:4px 8px;font-size:10px;font-weight:700;display:inline-flex;align-items:center;gap:4px;">
+              <span style="font-size:12px;">G</span> G Suite Marketplace ←
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;font-size:13px;color:#333;">
+          <span style="display:inline-block;background:#0d1b4b;color:#fff;border-radius:50%;width:22px;height:22px;text-align:center;line-height:22px;font-size:11px;font-weight:700;margin-right:8px;">②</span>
+          <strong>「Report Suspicious For Gmail」</strong>セクションの <strong>「G Suite Marketplace」</strong> リンクをクリック
+        </div>
+      </div>
+      <div style="text-align:center;font-size:16px;color:#1565c0;padding:3px 0;">↓</div>
+      <div style="display:flex;align-items:center;gap:16px;padding:12px 0;border-bottom:1px solid #eee;">
+        <div style="flex:0 0 auto;width:200px;">
+          <div style="background:#fff;border:2px solid #4285f4;border-radius:8px;padding:10px;text-align:center;font-size:11px;">
+            <div style="font-size:20px;margin-bottom:4px;">🎣</div>
+            <div style="font-weight:700;margin-bottom:6px;">Report Suspicious for Gmail</div>
+            <div style="background:#4285f4;color:#fff;border-radius:4px;padding:4px 8px;font-size:10px;font-weight:700;">Domain Install ←</div>
+          </div>
+        </div>
+        <div style="flex:1;font-size:13px;color:#333;">
+          <span style="display:inline-block;background:#0d1b4b;color:#fff;border-radius:50%;width:22px;height:22px;text-align:center;line-height:22px;font-size:11px;font-weight:700;margin-right:8px;">③</span>
+          G Suite Marketplaceで <strong>「Domain Install」</strong> をクリックし、<strong>「Continue」</strong>でアクセスを許可
+        </div>
+      </div>
+      <div style="text-align:center;font-size:16px;color:#1565c0;padding:3px 0;">↓</div>
+      <div style="display:flex;align-items:flex-start;gap:16px;padding:12px 0;border-bottom:1px solid #eee;">
+        <div style="flex:0 0 auto;width:200px;">
+          <div style="background:#fff;border:1px solid #ddd;border-radius:8px;padding:10px;font-size:11px;">
+            <div style="font-weight:700;margin-bottom:6px;color:#333;">Turn ON for</div>
+            <div style="margin-bottom:4px;padding:5px 8px;background:#e8f0ff;border-radius:4px;border:1px solid #1a73e8;font-size:10px;font-weight:700;color:#0d47a1;">✅ 組織全体（全社展開）</div>
+            <div style="padding:5px 8px;background:#f5f5f5;border-radius:4px;font-size:10px;color:#555;">特定のサブ組織（テスト展開）</div>
+          </div>
+        </div>
+        <div style="flex:1;font-size:13px;color:#333;">
+          <span style="display:inline-block;background:#0d1b4b;color:#fff;border-radius:50%;width:22px;height:22px;text-align:center;line-height:22px;font-size:11px;font-weight:700;margin-right:8px;">④</span>
+          <strong>「Turn ON for」</strong>ドロップダウンで展開対象を選択<br/>
+          <div style="background:#e8f0ff;border-radius:6px;padding:8px 12px;margin-top:8px;font-size:12px;border-left:4px solid #1565c0;">
+            <strong>全社展開：</strong>組織全体を選択（推奨）<br/>
+            <strong>テスト展開：</strong>情シスのサブ組織ユニットを選択して先行テスト
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;font-size:16px;color:#1565c0;padding:3px 0;">↓</div>
+      <div style="display:flex;align-items:center;gap:16px;padding:12px 0;">
+        <div style="flex:0 0 auto;width:200px;background:#f0fff4;border-radius:10px;padding:16px;text-align:center;border:2px solid #52c97a;">
+          <div style="font-size:28px;margin-bottom:6px;">✅</div>
+          <div style="font-size:11px;color:#333;">全社のGmailにボタンが表示されます！</div>
+        </div>
+        <div style="flex:1;font-size:13px;color:#333;">
+          <span style="display:inline-block;background:#2e7d32;color:#fff;border-radius:50%;width:22px;height:22px;text-align:center;line-height:22px;font-size:11px;font-weight:700;margin-right:8px;">⑤</span>
+          <strong>「I agree」</strong>にチェックを入れて <strong>「Accept」→「Done」</strong>をクリック。インストール完了！<br/>
+          <span style="font-size:11px;color:#888;margin-top:4px;display:block;">確認：Google管理コンソール → アプリ → Marketplace アプリ → ZenGuide で「全員にオン」になっていればOK</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Step 4: Safelist ===== -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">4</div><h2>Safelist（セーフリスト）の設定</h2><div class="tag2">約5分</div></div>
+  <div class="slide-body">
+    <p style="font-size:13px;color:#333;margin-bottom:16px;">安全なメールアドレス・ドメインをセーフリストに登録します。登録済みメールを報告した場合、専用メッセージが表示されます。</p>
+
+    <p style="font-size:13px;font-weight:700;color:#0d1b4b;margin-bottom:10px;">📌 必須登録対象</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px;">
+      <div style="background:#e3f2fd;border:1.5px solid #1565c0;border-radius:8px;padding:12px;text-align:center;">
+        <div style="font-size:20px;margin-bottom:4px;">📚</div>
+        <div style="font-weight:700;font-size:12px;color:#0d47a1;">ZenGuideメール</div>
+        <div style="font-size:10px;color:#555;margin-top:3px;">awareness@securityeducation.com</div>
+      </div>
+      <div style="background:#e8f5e9;border:1.5px solid #4caf50;border-radius:8px;padding:12px;text-align:center;">
+        <div style="font-size:20px;margin-bottom:4px;">🎯</div>
+        <div style="font-weight:700;font-size:12px;color:#1b5e20;">シミュレーション送信元</div>
+        <div style="font-size:10px;color:#555;margin-top:3px;">設定後にドメインを追加</div>
+      </div>
+      <div style="background:#fff3e0;border:1.5px solid #ff9800;border-radius:8px;padding:12px;text-align:center;">
+        <div style="font-size:20px;margin-bottom:4px;">🏢</div>
+        <div style="font-weight:700;font-size:12px;color:#e65100;">重要取引先</div>
+        <div style="font-size:10px;color:#555;margin-top:3px;">必要に応じて追加</div>
+      </div>
+    </div>
+
+    <p style="font-size:13px;font-weight:700;color:#0d1b4b;margin-bottom:12px;">📌 設定手順（ZenGuide → Report Suspicious → Settings → Safelist）</p>
+    <div style="display:flex;flex-direction:column;gap:0;">
+      <div style="display:flex;align-items:center;gap:16px;padding:10px 0;border-bottom:1px solid #eee;">
+        <div style="flex:0 0 auto;width:200px;">
+          <div style="background:#fff;border:1px solid #ddd;border-radius:8px;padding:10px;font-size:11px;">
+            <div style="font-weight:700;margin-bottom:6px;">Safelist</div>
+            <div style="background:#1565c0;color:#fff;border-radius:4px;padding:3px 8px;font-size:10px;font-weight:700;display:inline-block;">＋ Add a New Safelist ←</div>
+          </div>
+        </div>
+        <div style="flex:1;font-size:13px;color:#333;">
+          <span style="display:inline-block;background:#0d1b4b;color:#fff;border-radius:50%;width:22px;height:22px;text-align:center;line-height:22px;font-size:11px;font-weight:700;margin-right:8px;">①</span>
+          <strong>「＋ Add a New Safelist」</strong>をクリック
+        </div>
+      </div>
+      <div style="text-align:center;font-size:16px;color:#1565c0;padding:3px 0;">↓</div>
+      <div style="display:flex;align-items:flex-start;gap:16px;padding:10px 0;border-bottom:1px solid #eee;">
+        <div style="flex:0 0 auto;width:200px;">
+          <div style="background:#fff;border:1px solid #ddd;border-radius:8px;padding:10px;font-size:11px;">
+            <div style="font-size:10px;color:#888;margin-bottom:2px;">Name</div>
+            <div style="background:#f0f0f0;border-radius:4px;padding:4px 8px;margin-bottom:8px;font-size:10px;">ZenGuide Training Emails</div>
+            <div style="font-size:10px;color:#888;margin-bottom:2px;">Applicable Field</div>
+            <div style="background:#e8f0ff;border-radius:4px;padding:4px 8px;margin-bottom:8px;font-size:10px;font-weight:700;">From Address</div>
+            <div style="font-size:10px;color:#888;margin-bottom:2px;">Criteria / Value</div>
+            <div style="background:#f0f0f0;border-radius:4px;padding:4px 8px;font-size:10px;">Contains / securityeducation.com</div>
+          </div>
+        </div>
+        <div style="flex:1;font-size:13px;color:#333;">
+          <span style="display:inline-block;background:#0d1b4b;color:#fff;border-radius:50%;width:22px;height:22px;text-align:center;line-height:22px;font-size:11px;font-weight:700;margin-right:8px;">②</span>
+          Name・Applicable Field・条件を設定。ZenGuideメールの場合：<br/>
+          <strong>From Address → Contains → securityeducation.com</strong>
+        </div>
+      </div>
+      <div style="text-align:center;font-size:16px;color:#1565c0;padding:3px 0;">↓</div>
+      <div style="display:flex;align-items:center;gap:16px;padding:10px 0;">
+        <div style="flex:0 0 auto;width:200px;background:#f0fff4;border-radius:8px;padding:12px;text-align:center;border:2px solid #52c97a;">
+          <div style="font-size:20px;margin-bottom:4px;">✅</div>
+          <div style="font-size:10px;color:#333;">「Create」→「Save Changes」</div>
+        </div>
+        <div style="flex:1;font-size:13px;color:#333;">
+          <span style="display:inline-block;background:#2e7d32;color:#fff;border-radius:50%;width:22px;height:22px;text-align:center;line-height:22px;font-size:11px;font-weight:700;margin-right:8px;">③</span>
+          <strong>「Create」</strong>をクリックして保存。必要な件数分繰り返し、最後に<strong>「Save Changes」</strong>
+        </div>
+      </div>
+    </div>
+    <div class="warn-box" style="margin-top:16px;">⚠️ セーフリストの変更は、ユーザーがメールクライアントを<strong>再起動した後</strong>に有効になります。</div>
+  </div>
+</div>
+
+<!-- ===== Step 5: 動作確認 ===== -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">5</div><h2>動作確認・ファイアウォール設定</h2><div class="tag2">約5分</div></div>
+  <div class="slide-body">
+
+    <div style="font-size:14px;font-weight:800;color:#1565c0;margin-bottom:12px;border-left:4px solid #1565c0;padding-left:10px;">① 動作確認手順</div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:24px;">
+      <div class="step-item"><div class="si-num">1</div><div class="si-text">テスト用Gmailアカウント（情シス担当者）でGmailをデスクトップブラウザで開く</div></div>
+      <div class="step-item"><div class="si-num">2</div><div class="si-text">受信メールを1通開き、メール右上に <strong>「Report Phish」ボタン</strong>が表示されていることを確認</div></div>
+      <div class="step-item"><div class="si-num">3</div><div class="si-text">ボタンをクリックし、<strong>確認ダイアログ</strong>が表示されることを確認</div></div>
+      <div class="step-item"><div class="si-num">4</div><div class="si-text">「Report」を選択し、<strong>完了ポップアップメッセージ</strong>が表示されることを確認</div></div>
+      <div class="step-item"><div class="si-num">5</div><div class="si-text">設定した転送先（phishalarm@adventure-inc.co.jp）に<strong>報告メールが届いていることを確認</strong></div></div>
+    </div>
+
+    <div class="important-box" style="margin-bottom:24px;">
+      <div class="i-title">ボタンが表示されない場合</div>
+      <div style="font-size:12px;color:#7b3a00;">ZenGuide User Management でそのユーザーのメールアドレスが登録されているか確認してください。<br/>ライセンスが付与されているユーザーのみボタンが表示されます。</div>
+    </div>
+
+    <div style="font-size:14px;font-weight:800;color:#1565c0;margin-bottom:12px;border-left:4px solid #1565c0;padding-left:10px;">② ホワイトリスト登録URL（アジアパシフィック）</div>
+    <div class="warn-box" style="margin-bottom:12px;">⚠️ プロキシ・ファイアウォールを利用している場合は以下のURLを許可してください。Adventure Inc.の場合はAPリージョンが該当します。</div>
+    <div style="background:#1a1a2e;border-radius:10px;padding:16px;font-family:monospace;font-size:12px;color:#00d4d4;line-height:2;">
+      https://phishalarm-ap-southeast-2.securityeducation.com/api/v1/<br/>
+      https://phishalarm-ap.securityeducation.com<br/>
+      https://analyzer-api.ap.securityeducation.com
+    </div>
+    <div class="success-box" style="margin-top:16px;">✅ 動作確認まで完了したら展開完了です！全社員のGmailでPhishAlarmが利用可能になりました。</div>
+  </div>
+</div>
+
+<!-- ===== 社内周知 ===== -->
+<div class="slide">
+  <div class="slide-head"><div class="snum">6</div><h2>社内周知・問い合わせ対応</h2></div>
+  <div class="slide-body">
+    <div style="font-size:14px;font-weight:800;color:#1565c0;margin-bottom:12px;border-left:4px solid #1565c0;padding-left:10px;">① Slackでの周知文（展開当日に送信）</div>
+    <div style="background:#f8f9ff;border-left:4px solid #1565c0;border-radius:0 8px 8px 0;padding:16px;margin-bottom:24px;font-size:13px;color:#333;line-height:1.8;">
+      🔐 【重要】フィッシングメール報告機能（PhishAlarm）の導入について<br/><br/>
+      本日より、Gmailに <strong>「Report Phish」ボタン</strong>が追加されました。<br/>
+      不審なメールを受け取った際はこのボタンをクリックして情シスに報告してください。<br/><br/>
+      📌 場所：Gmailで受信メールを開いた際、<strong>右上または横に表示</strong>されます。<br/>
+      📌 フィッシングシミュレーションメールが届いた際も、ぜひ報告してください！<br/><br/>
+      ご不明な点は <strong>#help_社内システム</strong> までご連絡ください。<br/><br/>
+      <span style="color:#888;font-size:11px;">──────────────</span><br/>
+      🔐 [Notice] PhishAlarm (Report Phish Button) is now live in Gmail.<br/>
+      If you receive a suspicious email, click "Report Phish" to notify the IT team.<br/>
+      Questions? Contact <strong>#global-corporate-it</strong>.
+    </div>
+
+    <div style="font-size:14px;font-weight:800;color:#1565c0;margin-bottom:12px;border-left:4px solid #1565c0;padding-left:10px;">② よくある問い合わせと対応</div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div style="background:#f8f9ff;border-radius:8px;padding:12px 16px;border-left:4px solid #1565c0;">
+        <div style="font-weight:700;font-size:13px;color:#0d47a1;margin-bottom:4px;">Q. これってフィッシングシミュレーションですか？</div>
+        <div style="font-size:12px;color:#444;">→ 「ご報告ありがとうございます！今回はセキュリティ教育のためのシミュレーションメールです。報告いただけたのは正しい対応です👏」<br/><strong style="color:#c62828;">※ 他のメンバーへの共有はお控えくださいとひと言添える</strong></div>
+      </div>
+      <div style="background:#f8f9ff;border-radius:8px;padding:12px 16px;border-left:4px solid #4caf50;">
+        <div style="font-weight:700;font-size:13px;color:#2e7d32;margin-bottom:4px;">Q. ボタンが表示されない</div>
+        <div style="font-size:12px;color:#444;">→ デスクトップブラウザ（Chrome推奨）でGmailを開いているか確認。モバイルWebブラウザは非対応。</div>
+      </div>
+      <div style="background:#f8f9ff;border-radius:8px;padding:12px 16px;border-left:4px solid #ff9800;">
+        <div style="font-weight:700;font-size:13px;color:#e65100;margin-bottom:4px;">Q. 報告したのにメールが迷惑メールに移動されない</div>
+        <div style="font-size:12px;color:#444;">→ Gmail版では自動移動は非対応です。手動で迷惑メールに移動するか削除してください。</div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-support">🆘 <strong>問い合わせ急増時</strong>はSlack: #help_社内システム / #global-corporate-it で対応</div>
+</div>
+
+</div>
+<div style="text-align:center;padding:28px;color:#888;font-size:12px;border-top:2px solid #e8ecf5;margin-top:12px;">
+  <strong style="color:#1a1a2e;">コーポレートIT課</strong>　｜　PhishAlarm 設定・展開手順書 v1.0　｜　2026年6月
+</div>
+</body>
+</html>
